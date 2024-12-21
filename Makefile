@@ -8,6 +8,8 @@ RM = rm
 SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
 OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
 
+rebuild: clean all
+
 all: $(OBJ_DIR)/$(PROJ_NAME)
 
 $(OBJ_DIR)/$(PROJ_NAME): $(OBJ_FILES)
@@ -21,7 +23,7 @@ $(OBJ_DIR):
 
 .PHONY: clean
 clean: 
-	$(RM) ./$(OBJ_DIR)/*
+	$(RM) -f ./$(OBJ_DIR)/*
 
 .PHONY: run
 run: 

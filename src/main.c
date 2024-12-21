@@ -17,7 +17,7 @@ char* PrintNextAction(Action nextMove)
 // to the simulator.
 int main(int argc, char* argv[]) {
     int mazeSize = 16;
-
+    char* HeadingID= "nesw";
     struct Mouse* mouse = CreateMouse();
 
     debug_log("Running...");
@@ -27,20 +27,22 @@ int main(int argc, char* argv[]) {
 
         Action nextMove = solver();
         PrintNextAction(nextMove);
-        mouse->TakeAction(mouse, nextMove);
-        
+
         switch(nextMove){
             case FORWARD:
                 API_moveForward();
                 break;
             case LEFT:
+                API_setWall(mouse->location.y, mouse->location.x, HeadingID[mouse->heading]);
                 API_turnLeft();
                 break;
             case RIGHT:
+                API_setWall(mouse->location.y, mouse->location.x, HeadingID[mouse->heading]);
                 API_turnRight();
                 break;
             case IDLE:
                 break;
         }
+        mouse->TakeAction(mouse, nextMove);
     }
 }

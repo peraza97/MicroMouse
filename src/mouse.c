@@ -56,6 +56,14 @@ void TakeAction(struct Mouse * mouse, Action action)
     switch (action)
     {
         case FORWARD:
+            if (mouse->heading % 2 == 0) //left right
+            {
+                mouse->location.x += (mouse->heading == NORTH ? 1 : -1);
+            }
+            else
+            {
+                mouse->location.y += (mouse->heading == EAST ? 1 : -1);
+            }
             break;
         case LEFT:
             mouse->heading = ComputeModulo((int)mouse->heading - 1, 4);
