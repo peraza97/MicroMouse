@@ -25,5 +25,6 @@ void TakeAction(struct Mouse * mouse, Action action);
 void PrintLocation(struct Mouse * mouse);
 void PrintHeading(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
+struct Location GetSimulatorCoordinates(int x, int y);
 
 #endif

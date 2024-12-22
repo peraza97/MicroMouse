@@ -43,20 +43,20 @@ void SetWall(struct Maze* maze, int x, int y, char direction)
 {
     switch (direction)
     {
-    case'n':
-        maze->walls[x][y] |= 2 << 3;
-        break;
-    case'e':
-        maze->walls[x][y] |= 2 << 2;
-        break;
-    case's':
-        maze->walls[x][y] |= 2 << 1;
-        break;
-    case'w':
-        maze->walls[x][y] |= 2 << 0;
-        break;
-    default:
-        break;
+        case'n':
+            maze->walls[y][x] |= 2 << 3;
+            break;
+        case'e':
+            maze->walls[y][x] |= 2 << 2;
+            break;
+        case's':
+            maze->walls[x][y] |= 2 << 1;
+            break;
+        case'w':
+            maze->walls[x][y] |= 2 << 0;
+            break;
+        default:
+            break;
     }
 }
 

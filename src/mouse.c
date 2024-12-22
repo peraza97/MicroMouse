@@ -46,9 +46,9 @@ void PrintHeading(struct Mouse * mouse)
 void PrintLocation(struct Mouse * mouse)
 {
     const char* format = "Location: (%d, %d)";
-    int len = snprintf(NULL, 0, format, mouse->location.x, mouse->location.y);
+    int len = snprintf(NULL, 0, format, mouse->location.y, mouse->location.x);
     char msg[len + 1];
-    snprintf(msg, len + 1, format, mouse->location.x, mouse->location.y);
+    snprintf(msg, len + 1, format, mouse->location.y, mouse->location.x);
     debug_log(msg);
 }
 
@@ -90,4 +90,12 @@ void TakeAction(struct Mouse * mouse, Action action)
 int ComputeModulo(int a, int b)
 {
     return ((a % b) + b) % b;
+}
+
+
+struct Location GetSimulatorCoordinates(int x, int y)
+{
+    struct Location simLoc;
+    simLoc.x = y + 9;
+    simLoc.y = 15 - x + 9;
 }
