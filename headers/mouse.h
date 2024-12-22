@@ -13,8 +13,6 @@ struct Mouse {
     // Helper functions
     Action (*GetNextAction)(struct Mouse * mouse);
     void (*TakeAction)(struct Mouse * mouse, Action action);
-    void (*PrintLocation)(struct Mouse * mouse);
-    void (*PrintHeading)(struct Mouse * mouse);
 };
 
 struct Mouse * CreateMouse(struct Maze * maze);
@@ -22,9 +20,7 @@ void FreeMouse(struct Mouse * mouse);
 
 Action GetNextAction(struct Mouse * mouse);
 void TakeAction(struct Mouse * mouse, Action action);
-void PrintLocation(struct Mouse * mouse);
-void PrintHeading(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
-struct Location GetSimulatorCoordinates(int x, int y);
+struct Location GetSimulatorCoordinates(struct Location loc);
 
 #endif

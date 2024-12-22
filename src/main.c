@@ -3,6 +3,7 @@
 #include "mouse.h"
 #include "solver.h"
 #include "API.h"
+#include "utils.h"
 
 char* PrintNextAction(Action nextMove)
 {
@@ -19,8 +20,8 @@ int main(int argc, char* argv[]) {
 
     debug_log("Running...");
     while (1) {
-        mouse->PrintLocation(mouse);
-        mouse->PrintHeading(mouse);
+        PrintLocation(mouse->location);
+        PrintHeading(mouse->heading);
 
         Action nextMove = mouse->GetNextAction(mouse);
         PrintNextAction(nextMove);
