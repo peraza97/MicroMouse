@@ -21,6 +21,5 @@ void FreeMouse(struct Mouse * mouse);
 Action GetNextAction(struct Mouse * mouse);
 void TakeAction(struct Mouse * mouse, Action action);
 int ComputeModulo(int a, int b);
-struct Location GetSimulatorCoordinates(struct Location loc);
 
 #endif

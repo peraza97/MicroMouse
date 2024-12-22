@@ -7,11 +7,13 @@
 
 int main(int argc, char* argv[]) {
     struct Maze* maze = CreateMaze(16);
+    maze->SetUp(maze);
+    
     struct Mouse* mouse = CreateMouse(maze);
 
     debug_log("Running...");
     while (1) {
-        PrintLocation(mouse->location);
+        PrintLocationFromLocation(mouse->location);
         PrintHeading(mouse->heading);
 
         Action nextMove = mouse->GetNextAction(mouse);
