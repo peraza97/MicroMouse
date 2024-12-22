@@ -1,6 +1,8 @@
 #include "solver.h"
 #include "API.h"
 
+char* HeadingsAbbreviation = "nesw";
+
 Action solver() {
     return leftWallFollower();
 }

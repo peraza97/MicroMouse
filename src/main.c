@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "maze.h"
 #include "mouse.h"
 #include "solver.h"
 #include "API.h"
@@ -12,37 +13,17 @@ char* PrintNextAction(Action nextMove)
     debug_log(msg);
 }
 
-// You do not need to edit this file.
-// This program just runs your solver and passes the choices
-// to the simulator.
 int main(int argc, char* argv[]) {
-    int mazeSize = 16;
-    char* HeadingID= "nesw";
-    struct Mouse* mouse = CreateMouse();
+    struct Maze* maze = CreateMaze(16);
+    struct Mouse* mouse = CreateMouse(maze);
 
     debug_log("Running...");
     while (1) {
         mouse->PrintLocation(mouse);
         mouse->PrintHeading(mouse);
 
-        Action nextMove = solver();
+        Action nextMove = mouse->GetNextAction(mouse);
         PrintNextAction(nextMove);
-
-        switch(nextMove){
-            case FORWARD:
-                API_moveForward();
-                break;
-            case LEFT:
-                API_setWall(mouse->location.y, mouse->location.x, HeadingID[mouse->heading]);
-                API_turnLeft();
-                break;
-            case RIGHT:
-                API_setWall(mouse->location.y, mouse->location.x, HeadingID[mouse->heading]);
-                API_turnRight();
-                break;
-            case IDLE:
-                break;
-        }
         mouse->TakeAction(mouse, nextMove);
     }
 }

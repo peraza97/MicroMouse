@@ -1,9 +1,8 @@
 #ifndef SOLVER_H
 #define SOLVER_H
-
+extern char* HeadingsAbbreviation;
 typedef enum Heading {NORTH, EAST, SOUTH, WEST} Heading;
 typedef enum Action {LEFT, FORWARD, RIGHT, IDLE} Action;
-
 
 struct Location
 {

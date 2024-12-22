@@ -4,15 +4,16 @@
 #include "mouse.h"
 #include "API.h"
 
-struct Mouse * CreateMouse() {
+struct Mouse * CreateMouse(struct Maze * maze) {
     struct Mouse *mouse = malloc(sizeof (struct Mouse));
+    mouse->maze = maze;
     mouse->location.x = 0;
     mouse->location.y = 0;
     mouse->heading = NORTH;
     mouse->PrintLocation = &PrintLocation;
     mouse->PrintHeading = &PrintHeading;
+    mouse->GetNextAction = &solver;
     mouse->TakeAction = &TakeAction;
-
     return mouse;
 }
 
@@ -51,11 +52,17 @@ void PrintLocation(struct Mouse * mouse)
     debug_log(msg);
 }
 
+Action GetNextAction(struct Mouse * mouse)
+{
+    return solver();
+}
+
 void TakeAction(struct Mouse * mouse, Action action)
 {
     switch (action)
     {
         case FORWARD:
+            API_moveForward();
             if (mouse->heading % 2 == 0) //left right
             {
                 mouse->location.x += (mouse->heading == NORTH ? 1 : -1);
@@ -66,9 +73,13 @@ void TakeAction(struct Mouse * mouse, Action action)
             }
             break;
         case LEFT:
+            API_setWall(mouse->location.y, mouse->location.x, HeadingsAbbreviation[mouse->heading]);
+            API_turnLeft();
             mouse->heading = ComputeModulo((int)mouse->heading - 1, 4);
             break;
         case RIGHT:
+            API_setWall(mouse->location.y, mouse->location.x, HeadingsAbbreviation[mouse->heading]);
+            API_turnRight();
             mouse->heading = ComputeModulo((int)mouse->heading + 1, 4);
             break;
         default:
