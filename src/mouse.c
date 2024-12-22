@@ -44,12 +44,14 @@ void TakeAction(struct Mouse * mouse, Action action)
             struct Location simLoc = GetSimulatorCoordinates(mouse->location);
             API_setWall(simLoc.y, simLoc.x, HeadingsAbbreviation[mouse->heading]);
             API_turnLeft();
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, HeadingsAbbreviation[mouse->heading]);
             mouse->heading = ComputeModulo((int)mouse->heading - 1, 4);
             break;
         case RIGHT:
             struct Location simLoc2 = GetSimulatorCoordinates(mouse->location);
             API_setWall(simLoc2.y, simLoc2.x, HeadingsAbbreviation[mouse->heading]);
             API_turnRight();
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, HeadingsAbbreviation[mouse->heading]);
             mouse->heading = ComputeModulo((int)mouse->heading + 1, 4);
             break;
         default:

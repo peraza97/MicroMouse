@@ -2,6 +2,14 @@
 #include <stdlib.h>
 #include "utils.h"
 
+char* PrintNextAction(Action nextMove)
+{
+    const char* format = "Action: %d";
+    int len = snprintf(NULL, 0, format, nextMove);
+    char msg[len + 1];
+    snprintf(msg, len + 1, format, nextMove);
+    debug_log(msg);
+}
 
 void PrintHeading(Heading heading)
 {
