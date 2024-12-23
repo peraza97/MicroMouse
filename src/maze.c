@@ -13,6 +13,8 @@ struct Maze * CreateMaze(char mazeDimension)
     maze->SetCellDistance = &SetCellDistance;
     maze->SetUp = &SetUp;
     maze->SetWall = &SetWall;
+    maze->GetNextMove = &GetNextMove;
+    maze->IsThereAWall = &IsThereAWall;
     return maze;
 }
 
@@ -51,20 +53,20 @@ void SetUp(struct Maze* maze)
     }
 }
 
-void SetWall(struct Maze* maze, int x, int y, char direction)
+void SetWall(struct Maze* maze, int x, int y, Heading heading)
 {
-    switch (direction)
+    switch (heading)
     {
-        case'n':
+        case NORTH:
             maze->walls[x][y] |= 2 << 3;
             break;
-        case'e':
+        case EAST:
             maze->walls[x][y] |= 2 << 2;
             break;
-        case's':
+        case SOUTH:
             maze->walls[x][y] |= 2 << 1;
             break;
-        case'w':
+        case WEST:
             maze->walls[x][y] |= 2 << 0;
             break;
         default:
@@ -73,10 +75,105 @@ void SetWall(struct Maze* maze, int x, int y, char direction)
 
     // API
     struct Location simLoc = GetSimulatorCoordinates(x, y);
+    char direction = HeadingsAbbreviation[heading];
     API_setWall(simLoc.x, simLoc.y, direction);
 }
 
 void SetCellDistance(struct Maze* maze, int x, int y, char distance)
 {
     maze->maze[x][y] = distance;
+}
+
+char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
+{
+    char value = 0;
+    switch (heading)
+    {
+        case NORTH:
+            value = 2 << 3;
+            break;
+        case EAST:
+            value = 2 << 2;
+            break;
+        case SOUTH:
+            value = 2 << 1;
+            break;
+        case WEST:
+            value = 2 << 0;
+            break;
+        default:
+            break;
+    }
+
+    return maze->walls[x][y] & value;
+}
+
+Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
+{
+    if (maze->maze[x][y] == 0)
+    {
+        return IDLE;
+    }
+
+    int newX = x;
+    int newY = y;
+    Heading newHeading;
+    int dist = 255;
+
+    //North
+    if (x > 1 && !maze->IsThereAWall(maze, x-1, y, heading))
+    {
+        if (maze->maze[x-1][y] < dist)
+        {
+            newX = x-1;
+            newY = y;
+            newHeading = NORTH;
+            dist = maze->maze[x-1][y];
+        }
+    }
+
+    //East
+    if (y < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x, y+1, heading))
+    {
+        if (maze->maze[x][y+1] < dist)
+        {
+            newX = x;
+            newY = y+1;
+            newHeading = EAST;
+            dist = maze->maze[x][y+1];
+        }
+    }
+
+    //South
+    if (x < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x+1, y, heading))
+    {
+        if (maze->maze[x+1][y] < dist)
+        {
+            newX = x+1;
+            newY = y;
+            newHeading = SOUTH;
+            dist = maze->maze[x+1][y];
+        }
+    }
+
+    //West
+    if (y > 1)
+    {
+        if (maze->maze[x][y-1] < dist && !maze->IsThereAWall(maze, x, y-1, heading))
+        {
+            newX = x;
+            newY = y-1;
+            newHeading = WEST;
+            dist = maze->maze[x][y-1];
+        }
+    }
+
+    if (heading == newHeading)
+    {
+        return FORWARD;
+    }
+
+    char rightTurns = (newHeading - heading + 4) % 4;
+    char leftTurns = (heading - newHeading + 4) % 4;
+    return leftTurns <= rightTurns ? LEFT : RIGHT;
 }

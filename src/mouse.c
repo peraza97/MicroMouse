@@ -42,12 +42,12 @@ void TakeAction(struct Mouse * mouse, Action action)
             break;
         case LEFT:
             API_turnLeft();
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, HeadingsAbbreviation[mouse->heading]);
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
             mouse->heading = ComputeModulo((int)mouse->heading - 1, 4);
             break;
         case RIGHT:
             API_turnRight();
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, HeadingsAbbreviation[mouse->heading]);
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
             mouse->heading = ComputeModulo((int)mouse->heading + 1, 4);
             break;
         default:
