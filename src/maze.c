@@ -157,16 +157,16 @@ void SetWall(struct Maze* maze, int x, int y, Heading heading)
     switch (heading)
     {
         case NORTH:
-            maze->walls[x][y] |= 2 << 3;
+            maze->walls[x][y] |= 1 << 3;
             break;
         case EAST:
-            maze->walls[x][y] |= 2 << 2;
+            maze->walls[x][y] |= 1 << 2;
             break;
         case SOUTH:
-            maze->walls[x][y] |= 2 << 1;
+            maze->walls[x][y] |= 1 << 1;
             break;
         case WEST:
-            maze->walls[x][y] |= 2 << 0;
+            maze->walls[x][y] |= 1 << 0;
             break;
         default:
             break;
@@ -204,16 +204,16 @@ unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
     switch (heading)
     {
         case NORTH:
-            value = 2 << 3;
+            value = 1 << 3;
             break;
         case EAST:
-            value = 2 << 2;
+            value = 1 << 2;
             break;
         case SOUTH:
-            value = 2 << 1;
+            value = 1 << 1;
             break;
         case WEST:
-            value = 2 << 0;
+            value = 1 << 0;
             break;
         default:
             break;
