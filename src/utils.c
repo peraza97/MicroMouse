@@ -5,7 +5,15 @@
 
 char* HeadingsAbbreviation = "nesw";
 
-char* PrintNextAction(Action nextMove)
+struct Location* GetLocationFromCoordinates(int x, int y)
+{
+    struct Location * loc = (struct Location*)malloc(sizeof(struct Location));
+    loc->x = x;
+    loc->y = y;
+    return loc;
+}
+
+void PrintNextAction(Action nextMove)
 {
     const char* format = "Action: %d";
     int len = snprintf(NULL, 0, format, nextMove);
@@ -51,6 +59,15 @@ void PrintLocation(int x, int y)
     char msg[len + 1];
     snprintf(msg, len + 1, format, x, y);
     debug_log(msg);
+}
+
+char* ConvertNumberToString(int value)
+{
+    const char* format = "%d";
+    int len = snprintf(NULL, 0, format, value);
+    char* msg = malloc (sizeof(char)*(len + 1));
+    snprintf(msg, len + 1, format, value);
+    return msg;
 }
 
 struct Location GetSimulatorCoordinatesFromLocation(struct Location loc)

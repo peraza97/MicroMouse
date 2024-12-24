@@ -5,7 +5,7 @@
 #include "utils.h"
 
 struct Mouse * CreateMouse(struct Maze * maze) {
-    struct Mouse *mouse = malloc(sizeof (struct Mouse));
+    struct Mouse *mouse = (struct Mouse*)malloc(sizeof(struct Mouse));
     mouse->maze = maze;
     mouse->location.x = 15;
     mouse->location.y = 0;
