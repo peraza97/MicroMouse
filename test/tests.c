@@ -22,6 +22,8 @@ void testMazeWall()
     assert(maze->IsThereAWall(maze,1,1,SOUTH) == 2);
     maze->SetWall(maze, 1, 1, WEST);
     assert(maze->IsThereAWall(maze,1,1,WEST) == 1);
+    
+    FreeMaze(maze);
 }
 
 int main()

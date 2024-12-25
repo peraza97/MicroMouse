@@ -154,6 +154,7 @@ void SetUpInitialDistances(struct Maze * maze)
         }
 
         free(loc);
+        FreeQueue(q);
     }
 
     return;
@@ -289,7 +290,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //West
-    if (y >= 1)
+    if (y >= 1 && !maze->IsThereAWall(maze, x, y-1, heading))
     {
         if (maze->maze[x][y-1] < dist && !maze->IsThereAWall(maze, x, y-1, heading))
         {
@@ -308,4 +309,64 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     char rightTurns = (newHeading - heading + 4) % 4;
     char leftTurns = (heading - newHeading + 4) % 4;
     return leftTurns <= rightTurns ? LEFT : RIGHT;
+}
+
+void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
+{
+    maze->SetWall(maze, x, y, heading);
+    struct Queue * q = QueueInit(255);
+    q->QueueEnqueue(q, GetLocationFromCoordinates(x,y));
+
+    while(q->QueueIsEmpty(q) == 0)
+    {
+
+        struct Location * loc = q->QueueDequeue(q);
+        int tempX = loc->x;
+        int tempY = loc->y;
+        int dist = maze->maze[tempX][tempY];
+
+        //North
+        if (tempX >= 1 && !maze->IsThereAWall(maze, tempX, tempY, NORTH))
+        {
+            if (maze->maze[tempX-1][tempY] < dist)
+            {
+                dist = maze->maze[tempX-1][tempY];
+            }
+            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX-1,tempY));
+        }
+
+        //East
+        if (tempY < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, tempX, tempY, EAST))
+        {
+            if (maze->maze[tempX][tempY+1] < dist)
+            {
+                dist = maze->maze[tempX][tempY+1];
+            }
+            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY+1));
+        }
+
+        //South
+        if (tempX < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, tempX, tempY, SOUTH))
+        {
+            if (maze->maze[tempX+1][tempY] < dist)
+            {
+                dist = maze->maze[tempX+1][tempY];
+            }
+            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX+1, tempY));
+        }
+
+        //West
+        if (tempY >= 1 && !maze->IsThereAWall(maze, tempX, tempY, WEST))
+        {
+            if (maze->maze[tempX][tempY-1] < dist)
+            {
+                dist = maze->maze[tempX][tempY-1];
+            }
+            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY-1));
+        }
+        
+        maze->maze[tempX][tempY] = dist;
+        free(loc);
+    }
+    FreeQueue(q);
 }

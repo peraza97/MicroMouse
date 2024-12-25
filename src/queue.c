@@ -19,6 +19,12 @@ struct Queue* QueueInit(unsigned char size)
     return Q;
 }
 
+void FreeQueue(struct Queue * q)
+{
+    free(q->buffer);
+    free(q);
+}
+
 unsigned char QueueIsEmpty(struct Queue* Q) 
 {
     return (Q->num_objects == 0);

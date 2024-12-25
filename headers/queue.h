@@ -33,6 +33,7 @@ struct Queue
 //Parameter: Positive integer for the size of queue (0~255)
 //Returns: Reference to a queue
 struct Queue* QueueInit(unsigned char size);
+void FreeQueue(struct Queue * q);
 
 ////////////////////////////////////////////////////////////////////////////////
 //Functionality - Checks if queue is empty
