@@ -254,7 +254,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     int dist = 255;
 
     //North
-    if (x >= 1 && !maze->IsThereAWall(maze, x-1, y, heading))
+    if (x >= 1 && !maze->IsThereAWall(maze, x, y, NORTH))
     {
         if (maze->maze[x-1][y] < dist)
         {
@@ -266,7 +266,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //East
-    if (y < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x, y+1, heading))
+    if (y < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x, y, EAST))
     {
         if (maze->maze[x][y+1] < dist)
         {
@@ -278,7 +278,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //South
-    if (x < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x+1, y, heading))
+    if (x < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x, y, SOUTH))
     {
         if (maze->maze[x+1][y] < dist)
         {
@@ -290,9 +290,9 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //West
-    if (y >= 1 && !maze->IsThereAWall(maze, x, y-1, heading))
+    if (y >= 1 && !maze->IsThereAWall(maze, x, y, WEST))
     {
-        if (maze->maze[x][y-1] < dist && !maze->IsThereAWall(maze, x, y-1, heading))
+        if (maze->maze[x][y-1] < dist)
         {
             newX = x;
             newY = y-1;
