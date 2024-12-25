@@ -62,6 +62,18 @@ void SetUp(struct Maze* maze)
     SetUpInitialDistances(maze);
 }
 
+void FreeMaze(struct Maze * maze)
+{
+    for(int i = 0; i < maze->mazeDimension; i++)
+    {
+        free(maze->maze[i]);
+        free(maze->walls[i]);
+    }
+    free(maze->maze);
+    free(maze->walls);
+    free(maze);
+}
+
 /// @brief Set up initial distances using Manhatten distances
 /// @param maze 
 void SetUpInitialDistances(struct Maze * maze)
@@ -178,20 +190,6 @@ void SetWall(struct Maze* maze, int x, int y, Heading heading)
     API_setWall(simLoc.x, simLoc.y, direction);
 }
 
-/// @brief For given coordinates, state it is X from goal state
-/// @param maze 
-/// @param x 
-/// @param y 
-/// @param distance 
-void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
-{
-    maze->maze[x][y] = distance;
-    struct Location simLoc = GetSimulatorCoordinates(x, y);
-    char * msg = ConvertNumberToString(distance);
-    API_setText(simLoc.x, simLoc.y, msg);
-    free(msg);
-}
-
 /// @brief For given coordinates and direction, is there a wall in front
 /// @param maze 
 /// @param x 
@@ -220,6 +218,20 @@ unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
     }
 
     return maze->walls[x][y] & value;
+}
+
+/// @brief For given coordinates, state it is X from goal state
+/// @param maze 
+/// @param x 
+/// @param y 
+/// @param distance 
+void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
+{
+    maze->maze[x][y] = distance;
+    struct Location simLoc = GetSimulatorCoordinates(x, y);
+    char * msg = ConvertNumberToString(distance);
+    API_setText(simLoc.x, simLoc.y, msg);
+    free(msg);
 }
 
 /// @brief Based on current maze state, get best action to get to goal state
