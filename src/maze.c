@@ -171,6 +171,36 @@ void SetWall(struct Maze* maze, int x, int y, Heading heading)
     switch (heading)
     {
         case NORTH:
+            SetWallHelper(maze, x, y, NORTH);
+            SetWallHelper(maze, x-1, y, SOUTH);
+            break;
+        case EAST:
+            SetWallHelper(maze, x, y, EAST);
+            SetWallHelper(maze, x, y+1, WEST);
+            break;
+        case SOUTH:
+            SetWallHelper(maze, x, y, SOUTH);
+            SetWallHelper(maze, x+1, y, NORTH);
+            break;
+        case WEST:
+            SetWallHelper(maze, x, y, WEST);
+            SetWallHelper(maze, x, y-1, EAST);
+            break;
+        default:
+            break;
+    }
+}
+
+void SetWallHelper(struct Maze* maze, int x, int y, Heading heading)
+{
+    if (x < 0 || y < 0 || x >= maze->mazeDimension || y >= maze->mazeDimension)
+    {
+        return;
+    }
+
+    switch (heading)
+    {
+        case NORTH:
             maze->walls[x][y] |= 1 << 3;
             break;
         case EAST:
@@ -200,7 +230,7 @@ void SetWall(struct Maze* maze, int x, int y, Heading heading)
 /// @return 
 unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
 {
-    char value = 0;
+    unsigned char value = 0;
     switch (heading)
     {
         case NORTH:
@@ -255,7 +285,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     int dist = 255;
 
     //North
-    if (x >= 1 && !maze->IsThereAWall(maze, x, y, NORTH))
+    if (x >= 1 && maze->IsThereAWall(maze, x, y, NORTH) == 0)
     {
         if (maze->maze[x-1][y] < dist)
         {
@@ -267,7 +297,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //East
-    if (y < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x, y, EAST))
+    if (y < maze->mazeDimension - 1 && maze->IsThereAWall(maze, x, y, EAST) == 0)
     {
         if (maze->maze[x][y+1] < dist)
         {
@@ -279,7 +309,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //South
-    if (x < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, x, y, SOUTH))
+    if (x < maze->mazeDimension - 1 && maze->IsThereAWall(maze, x, y, SOUTH) == 0)
     {
         if (maze->maze[x+1][y] < dist)
         {
@@ -291,7 +321,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     }
 
     //West
-    if (y >= 1 && !maze->IsThereAWall(maze, x, y, WEST))
+    if (y >= 1 && maze->IsThereAWall(maze, x, y, WEST) == 0)
     {
         if (maze->maze[x][y-1] < dist)
         {
@@ -325,7 +355,6 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
     while(q->QueueIsEmpty(q) == 0)
     {
         struct Location * loc = q->QueueDequeue(q);
-
         struct Location simLoc = GetSimulatorCoordinatesFromLocation(*loc);
         API_setColor(simLoc.x, simLoc.y, 'b');
 
@@ -335,28 +364,28 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
         unsigned char found = 0;
 
         //North
-        if (loc->x >= 1 && !maze->IsThereAWall(maze, loc->x, loc->y, NORTH))
+        if (loc->x >= 1 && maze->IsThereAWall(maze, loc->x, loc->y, NORTH) == 0)
         {
             found = 1;
             accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x-1,loc->y);
         }
 
         //East
-        if (loc->y < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, loc->x, loc->y, EAST))
+        if (loc->y < maze->mazeDimension - 1 && maze->IsThereAWall(maze, loc->x, loc->y, EAST) == 0)
         {
             found = 1;
             accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y+1);
         }
 
         //South
-        if (loc->x < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, loc->x, loc->y, SOUTH))
+        if (loc->x < maze->mazeDimension - 1 && maze->IsThereAWall(maze, loc->x, loc->y, SOUTH) == 0)
         {
             found = 1;
             accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x+1, loc->y);
         }
 
         //West
-        if (loc->y >= 1 && !maze->IsThereAWall(maze, loc->x, loc->y, WEST))
+        if (loc->y >= 1 && maze->IsThereAWall(maze, loc->x, loc->y, WEST) == 0)
         {
             found = 1;
             accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y-1);
@@ -365,10 +394,10 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
         // there is at least 1 accessible neighbor, check if it needs an update
         if (found > 0)
         {
-            int min = 255;
+            unsigned char min = 255;
             for(int i = 0; i < neighborIndex; ++i)
             {
-                if (maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y] < min)
+                if (maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y] <= min)
                 {
                     min = maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y];
                 }

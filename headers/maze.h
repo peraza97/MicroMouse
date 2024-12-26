@@ -21,6 +21,7 @@ void FreeMaze(struct Maze * maze);
 void SetUpMaze(struct Maze* maze);
 void SetUpInitialDistances(struct Maze * maze);
 void SetWall(struct Maze* maze, int x, int y, Heading heading);
+void SetWallHelper(struct Maze* maze, int x, int y, Heading heading);
 unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading);
 void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance);
 Action GetNextMove(struct Maze* maze, int x, int y, Heading heading);
