@@ -311,6 +311,11 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     return leftTurns <= rightTurns ? LEFT : RIGHT;
 }
 
+/// @brief Last action hit a newly discovered wall. use floodfill to update maze with new distances
+/// @param maze 
+/// @param x 
+/// @param y 
+/// @param heading 
 void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
 {
     maze->SetWall(maze, x, y, heading);
