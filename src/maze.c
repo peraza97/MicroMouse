@@ -325,12 +325,14 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
     while(q->QueueIsEmpty(q) == 0)
     {
         struct Location * loc = q->QueueDequeue(q);
-        int dist = maze->maze[loc->x][loc->y];
-        unsigned char found = 0;
+
+        struct Location simLoc = GetSimulatorCoordinatesFromLocation(*loc);
+        API_setColor(simLoc.x, simLoc.y, 'b');
 
         // set up accessible neighbors
         struct Location * accessibleNeighbors[5];
         int neighborIndex = 0;
+        unsigned char found = 0;
 
         //North
         if (loc->x >= 1 && !maze->IsThereAWall(maze, loc->x, loc->y, NORTH))
@@ -360,7 +362,7 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
             accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y-1);
         }
 
-        // at least 1 neighbor has <= dist of main cell. update
+        // there is at least 1 accessible neighbor, check if it needs an update
         if (found > 0)
         {
             int min = 255;
@@ -371,22 +373,27 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
                     min = maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y];
                 }
             }
-            if (dist <= min)
+
+            if (maze->maze[loc->x][loc->y] <= min)
             {
                 maze->SetCellDistance(maze, loc->x, loc->y, min+1);
                 for(int i = 0; i < neighborIndex; ++i)
                 {
                     q->QueueEnqueue(q, accessibleNeighbors[i]);
+                    struct Location simLo2 = GetSimulatorCoordinatesFromLocation(*accessibleNeighbors[i]);
+                    API_setColor(simLo2.x, simLo2.y, 'c');
+                }
+            }
+            else
+            {
+                for(int i = 0; i < neighborIndex; ++i)
+                {
+                    free(accessibleNeighbors[i]);
                 }
             }
         }
-        else
-        {
-            for(int i = 0; i < neighborIndex; ++i)
-            {
-                free(accessibleNeighbors[i]);
-            }
-        }
+
+        API_clearColor(simLoc.x, simLoc.y);
         free(loc);
     }
     FreeQueue(q);
