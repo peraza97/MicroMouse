@@ -13,6 +13,7 @@ struct Mouse {
     // Helper functions
     Action (*GetNextAction)(struct Mouse * mouse);
     void (*TakeAction)(struct Mouse * mouse, Action action);
+    unsigned char(*CanMoveForward)(struct Mouse * mouse);
 };
 
 struct Mouse * CreateMouse(struct Maze * maze);
@@ -20,6 +21,7 @@ void FreeMouse(struct Mouse * mouse);
 
 Action GetNextAction(struct Mouse * mouse);
 void TakeAction(struct Mouse * mouse, Action action);
+unsigned char CanMoveForward(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
 
 #endif

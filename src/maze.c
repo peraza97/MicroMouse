@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "maze.h"
 #include "utils.h"
 #include "API.h"
@@ -16,6 +17,7 @@ struct Maze * CreateMaze(unsigned char mazeDimension)
     maze->SetWall = &SetWall;
     maze->GetNextMove = &GetNextMove;
     maze->IsThereAWall = &IsThereAWall;
+    maze->UpdateMaze = &UpdateMaze;
     return maze;
 }
 
@@ -154,9 +156,8 @@ void SetUpInitialDistances(struct Maze * maze)
         }
 
         free(loc);
-        FreeQueue(q);
     }
-
+    free(q);
     return;
 }
 
@@ -305,7 +306,6 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     {
         return FORWARD;
     }
-
     char rightTurns = (newHeading - heading + 4) % 4;
     char leftTurns = (heading - newHeading + 4) % 4;
     return leftTurns <= rightTurns ? LEFT : RIGHT;
@@ -319,53 +319,69 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
 
     while(q->QueueIsEmpty(q) == 0)
     {
-
         struct Location * loc = q->QueueDequeue(q);
-        int tempX = loc->x;
-        int tempY = loc->y;
-        int dist = maze->maze[tempX][tempY];
+        int dist = maze->maze[loc->x][loc->y];
+        unsigned char found = 0;
+
+        // set up accessible neighbors
+        struct Location * accessibleNeighbors[5];
+        int neighborIndex = 0;
 
         //North
-        if (tempX >= 1 && !maze->IsThereAWall(maze, tempX, tempY, NORTH))
+        if (loc->x >= 1 && !maze->IsThereAWall(maze, loc->x, loc->y, NORTH))
         {
-            if (maze->maze[tempX-1][tempY] < dist)
-            {
-                dist = maze->maze[tempX-1][tempY];
-            }
-            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX-1,tempY));
+            found = 1;
+            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x-1,loc->y);
         }
 
         //East
-        if (tempY < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, tempX, tempY, EAST))
+        if (loc->y < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, loc->x, loc->y, EAST))
         {
-            if (maze->maze[tempX][tempY+1] < dist)
-            {
-                dist = maze->maze[tempX][tempY+1];
-            }
-            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY+1));
+            found = 1;
+            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y+1);
         }
 
         //South
-        if (tempX < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, tempX, tempY, SOUTH))
+        if (loc->x < maze->mazeDimension - 1 && !maze->IsThereAWall(maze, loc->x, loc->y, SOUTH))
         {
-            if (maze->maze[tempX+1][tempY] < dist)
-            {
-                dist = maze->maze[tempX+1][tempY];
-            }
-            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX+1, tempY));
+            found = 1;
+            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x+1, loc->y);
         }
 
         //West
-        if (tempY >= 1 && !maze->IsThereAWall(maze, tempX, tempY, WEST))
+        if (loc->y >= 1 && !maze->IsThereAWall(maze, loc->x, loc->y, WEST))
         {
-            if (maze->maze[tempX][tempY-1] < dist)
-            {
-                dist = maze->maze[tempX][tempY-1];
-            }
-            q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY-1));
+            found = 1;
+            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y-1);
         }
-        
-        maze->maze[tempX][tempY] = dist;
+
+        // at least 1 neighbor has <= dist of main cell. update
+        if (found > 0)
+        {
+            int min = 255;
+            for(int i = 0; i < neighborIndex; ++i)
+            {
+                if (maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y] < min)
+                {
+                    min = maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y];
+                }
+            }
+            if (dist <= min)
+            {
+                maze->SetCellDistance(maze, loc->x, loc->y, min+1);
+                for(int i = 0; i < neighborIndex; ++i)
+                {
+                    q->QueueEnqueue(q, accessibleNeighbors[i]);
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < neighborIndex; ++i)
+            {
+                free(accessibleNeighbors[i]);
+            }
+        }
         free(loc);
     }
     FreeQueue(q);

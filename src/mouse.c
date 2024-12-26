@@ -10,8 +10,9 @@ struct Mouse * CreateMouse(struct Maze * maze) {
     mouse->location.x = 15;
     mouse->location.y = 0;
     mouse->heading = NORTH;
-    mouse->GetNextAction = &solver;
+    mouse->GetNextAction = &GetNextAction;
     mouse->TakeAction = &TakeAction;
+    mouse->CanMoveForward = &CanMoveForward;
     return mouse;
 }
 
@@ -22,7 +23,7 @@ void FreeMouse(struct Mouse * mouse)
 
 Action GetNextAction(struct Mouse * mouse)
 {
-    return solver();
+    return mouse->maze->GetNextMove(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
 }
 
 void TakeAction(struct Mouse * mouse, Action action)
@@ -30,6 +31,13 @@ void TakeAction(struct Mouse * mouse, Action action)
     switch (action)
     {
         case FORWARD:
+            if (mouse->CanMoveForward(mouse) == 0)
+            {
+                debug_log("have to update the maze");
+                mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
+                return;
+            }
+
             API_moveForward();
             if (mouse->heading % 2 == 0) //left right
             {
@@ -42,17 +50,24 @@ void TakeAction(struct Mouse * mouse, Action action)
             break;
         case LEFT:
             API_turnLeft();
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
             mouse->heading = ComputeModulo((int)mouse->heading - 1, 4);
             break;
         case RIGHT:
             API_turnRight();
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
             mouse->heading = ComputeModulo((int)mouse->heading + 1, 4);
             break;
         default:
             break;
     }
+}
+
+unsigned char CanMoveForward(struct Mouse * mouse)
+{
+    if (API_wallFront() == 1)
+    {
+        return 0;
+    }
+    return 1;
 }
 
 int ComputeModulo(int a, int b)
