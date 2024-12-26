@@ -355,8 +355,6 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
     while(q->QueueIsEmpty(q) == 0)
     {
         struct Location * loc = q->QueueDequeue(q);
-        struct Location simLoc = GetSimulatorCoordinatesFromLocation(*loc);
-        API_setColor(simLoc.x, simLoc.y, 'b');
 
         // set up accessible neighbors
         struct Location * accessibleNeighbors[5];
@@ -409,8 +407,6 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
                 for(int i = 0; i < neighborIndex; ++i)
                 {
                     q->QueueEnqueue(q, accessibleNeighbors[i]);
-                    struct Location simLo2 = GetSimulatorCoordinatesFromLocation(*accessibleNeighbors[i]);
-                    API_setColor(simLo2.x, simLo2.y, 'c');
                 }
             }
             else
@@ -421,8 +417,6 @@ void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
                 }
             }
         }
-
-        API_clearColor(simLoc.x, simLoc.y);
         free(loc);
     }
     FreeQueue(q);
