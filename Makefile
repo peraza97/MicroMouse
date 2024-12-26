@@ -51,6 +51,6 @@ run:
 srun: 
 	sudo ./$(OBJ_DIR)/$(PROJ_NAME)
 
-.PHONY: run_test
-run_test: 
+.PHONY: run_tests
+run_tests: 
 	./$(OBJ_DIR)/$(TEST_NAME)

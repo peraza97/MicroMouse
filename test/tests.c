@@ -7,7 +7,7 @@
 void testMazeWall()
 {
     struct Maze * maze = CreateMaze(16);
-    maze->SetUp(maze);
+    maze->SetUpMaze(maze);
     assert(maze->IsThereAWall(maze,1,1,NORTH) == 0);
     assert(maze->IsThereAWall(maze,1,1,EAST) == 0);
     assert(maze->IsThereAWall(maze,1,1,SOUTH) == 0);
