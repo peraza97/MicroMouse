@@ -13,12 +13,10 @@ struct Location
 
 struct Location* GetLocationFromCoordinates(int x, int y);
 
+// Print helpers
 void PrintNextAction(Action nextMove);
 void PrintHeading(Heading heading);
 void PrintLocation(int x, int y);
-void PrintLocationFromLocation(struct Location);
-
-char* ConvertNumberToString(int value);
 
 // Simulator Helper
 struct Location GetSimulatorCoordinates(int x, int y);

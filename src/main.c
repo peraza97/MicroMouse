@@ -6,11 +6,9 @@
 #include "utils.h"
 
 int main(int argc, char* argv[]) {
-    struct Maze* maze = CreateMaze(16);
-    maze->SetUp(maze);
+    struct Mouse* mouse = CreateMouse(16);
+    mouse->SetUpMouse(mouse);
     
-    struct Mouse* mouse = CreateMouse(maze);
-
     debug_log("Running...");
     Action nextMove = IDLE;
     do 
@@ -18,4 +16,6 @@ int main(int argc, char* argv[]) {
         nextMove = mouse->GetNextAction(mouse);
         mouse->TakeAction(mouse, nextMove);
     } while (nextMove != IDLE);
+
+    FreeMouse(mouse);
 }

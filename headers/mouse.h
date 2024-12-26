@@ -11,14 +11,16 @@ struct Mouse {
     struct Location location;
 
     // Helper functions
+    void (*SetUpMouse)(struct Mouse * mouse);
     Action (*GetNextAction)(struct Mouse * mouse);
     void (*TakeAction)(struct Mouse * mouse, Action action);
     unsigned char(*CanMoveForward)(struct Mouse * mouse);
 };
 
-struct Mouse * CreateMouse(struct Maze * maze);
+struct Mouse * CreateMouse(unsigned char mazeDimension);
 void FreeMouse(struct Mouse * mouse);
 
+void SetUpMouse(struct Mouse * mouse);
 Action GetNextAction(struct Mouse * mouse);
 void TakeAction(struct Mouse * mouse, Action action);
 unsigned char CanMoveForward(struct Mouse * mouse);

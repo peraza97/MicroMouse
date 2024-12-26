@@ -13,7 +13,7 @@ struct Maze * CreateMaze(unsigned char mazeDimension)
     maze->maze = (unsigned char **)malloc(maze->mazeDimension * sizeof(unsigned char *));
 
     maze->SetCellDistance = &SetCellDistance;
-    maze->SetUp = &SetUp;
+    maze->SetUpMaze = &SetUpMaze;
     maze->SetWall = &SetWall;
     maze->GetNextMove = &GetNextMove;
     maze->IsThereAWall = &IsThereAWall;
@@ -23,7 +23,7 @@ struct Maze * CreateMaze(unsigned char mazeDimension)
 
 /// @brief SetUp Maze initial values
 /// @param maze 
-void SetUp(struct Maze* maze)
+void SetUpMaze(struct Maze* maze)
 {
     // Allocate memory
     maze->maze = (unsigned char **)malloc(maze->mazeDimension * sizeof(unsigned char*));
@@ -230,10 +230,10 @@ unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
 void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
 {
     maze->maze[x][y] = distance;
+
+    //API Helper
     struct Location simLoc = GetSimulatorCoordinates(x, y);
-    char * msg = ConvertNumberToString(distance);
-    API_setText(simLoc.x, simLoc.y, msg);
-    free(msg);
+    API_setNumText(simLoc.x, simLoc.y, distance);
 }
 
 /// @brief Based on current maze state, get best action to get to goal state

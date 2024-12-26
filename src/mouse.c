@@ -4,20 +4,33 @@
 #include "API.h"
 #include "utils.h"
 
-struct Mouse * CreateMouse(struct Maze * maze) {
+struct Mouse * CreateMouse(unsigned char mazeDimension) {
     struct Mouse *mouse = (struct Mouse*)malloc(sizeof(struct Mouse));
-    mouse->maze = maze;
+    mouse->maze = CreateMaze(mazeDimension);
     mouse->location.x = 15;
     mouse->location.y = 0;
     mouse->heading = NORTH;
+    mouse->SetUpMouse = &SetUpMouse;
     mouse->GetNextAction = &GetNextAction;
     mouse->TakeAction = &TakeAction;
     mouse->CanMoveForward = &CanMoveForward;
     return mouse;
 }
 
+void SetUpMouse(struct Mouse * mouse)
+{
+    // Set location and heading
+    mouse->location.x = 15;
+    mouse->location.y = 0;
+    mouse->heading = NORTH;
+
+    // Set up maze
+    mouse->maze->SetUpMaze(mouse->maze);
+}
+
 void FreeMouse(struct Mouse * mouse)
 {
+    FreeMaze(mouse->maze);
     free(mouse);
 }
 

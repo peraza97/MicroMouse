@@ -15,9 +15,3 @@ Action leftWallFollower() {
     }
     return FORWARD;
 }
-
-
-// Put your implementation of floodfill here!
-Action floodFill() {
-    return IDLE;
-}

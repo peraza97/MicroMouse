@@ -43,31 +43,13 @@ void PrintHeading(Heading heading)
     }
 }
 
-void PrintLocationFromLocation(struct Location loc)
-{
-    const char* format = "Location: (%d, %d)";
-    int len = snprintf(NULL, 0, format, loc.x, loc.y);
-    char msg[len + 1];
-    snprintf(msg, len + 1, format, loc.x, loc.y);
-    debug_log(msg);
-}
-
 void PrintLocation(int x, int y)
 {
-    const char* format = "Location: (%d, %d)";
+    const char* format = "(%d, %d)";
     int len = snprintf(NULL, 0, format, x, y);
     char msg[len + 1];
     snprintf(msg, len + 1, format, x, y);
     debug_log(msg);
-}
-
-char* ConvertNumberToString(int value)
-{
-    const char* format = "%d";
-    int len = snprintf(NULL, 0, format, value);
-    char* msg = malloc (sizeof(char)*(len + 1));
-    snprintf(msg, len + 1, format, value);
-    return msg;
 }
 
 struct Location GetSimulatorCoordinatesFromLocation(struct Location loc)

@@ -93,6 +93,12 @@ void API_setText(int x, int y, char* text) {
     fflush(stdout);
 }
 
+void API_setNumText(int x, int y, unsigned char value)
+{
+    printf("setText %d %d %d\n", x, y, value);
+    fflush(stdout);
+}
+
 void API_clearText(int x, int y) {
     printf("clearText %d %d\n", x, y);
     fflush(stdout);

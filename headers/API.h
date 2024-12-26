@@ -19,6 +19,7 @@ void API_clearColor(int x, int y);
 void API_clearAllColor();
 
 void API_setText(int x, int y, char* str);
+void API_setNumText(int x, int y, unsigned char value);
 void API_clearText(int x, int y);
 void API_clearAllText();
 
