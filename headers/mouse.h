@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include "maze.h"
-#include "solver.h"
 
 struct Mouse {
     struct Maze * maze;

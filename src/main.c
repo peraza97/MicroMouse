@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include "maze.h"
 #include "mouse.h"
-#include "solver.h"
 #include "API.h"
 #include "utils.h"
 

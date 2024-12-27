@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include "solver.h"
 #include "mouse.h"
 #include "API.h"
 #include "utils.h"
