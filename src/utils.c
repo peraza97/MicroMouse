@@ -3,14 +3,46 @@
 #include "utils.h"
 #include "API.h"
 
-char* HeadingsAbbreviation = "nesw";
-
 struct Location* GetLocationFromCoordinates(int x, int y)
 {
     struct Location * loc = (struct Location*)malloc(sizeof(struct Location));
     loc->x = x;
     loc->y = y;
     return loc;
+}
+
+char GetHeadingAbbreviation(Heading heading)
+{
+    switch (heading)
+    {
+        case NORTH:
+            return 'n';
+        case EAST:
+            return 'e';
+        case SOUTH:
+            return 's';
+        case WEST:
+            return 'w';
+        default:
+            return '?';
+    }
+}
+
+char* GetHeadingStr(Heading heading)
+{
+    switch (heading)
+    {
+    case NORTH:
+        return "NORTH";
+    case WEST:
+        return "WEST";
+    case SOUTH:
+        return "SOUTH";
+    case EAST:
+        return "EAST";
+    default:
+        return "?";
+    }
 }
 
 void PrintNextAction(Action nextMove)
@@ -20,27 +52,6 @@ void PrintNextAction(Action nextMove)
     char msg[len + 1];
     snprintf(msg, len + 1, format, nextMove);
     debug_log(msg);
-}
-
-void PrintHeading(Heading heading)
-{
-    switch (heading)
-    {
-    case NORTH:
-        debug_log("NORTH");
-        break;
-    case WEST:
-        debug_log("WEST");
-        break;
-    case SOUTH:
-        debug_log("SOUTH");
-        break;
-    case EAST:
-        debug_log("EAST");
-        break;
-    default:
-        break;
-    }
 }
 
 void PrintLocation(int x, int y)

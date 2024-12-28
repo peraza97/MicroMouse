@@ -22,7 +22,6 @@ struct Maze * CreateMaze(unsigned char mazeDimension)
 }
 
 /// @brief SetUp Maze initial values
-/// @param maze 
 void SetUpMaze(struct Maze* maze)
 {
     // Allocate memory
@@ -77,7 +76,6 @@ void FreeMaze(struct Maze * maze)
 }
 
 /// @brief Set up initial distances using Manhatten distances
-/// @param maze 
 void SetUpInitialDistances(struct Maze * maze)
 {
     struct Queue* q = QueueInit(255);
@@ -162,10 +160,6 @@ void SetUpInitialDistances(struct Maze * maze)
 }
 
 /// @brief Set Wall at location for Given heading
-/// @param maze 
-/// @param x 
-/// @param y 
-/// @param heading 
 void SetWall(struct Maze* maze, int x, int y, Heading heading)
 {
     switch (heading)
@@ -218,16 +212,10 @@ void SetWallHelper(struct Maze* maze, int x, int y, Heading heading)
 
     // API
     struct Location simLoc = GetSimulatorCoordinates(x, y);
-    char direction = HeadingsAbbreviation[heading];
-    API_setWall(simLoc.x, simLoc.y, direction);
+    API_setWall(simLoc.x, simLoc.y, GetHeadingAbbreviation(heading));
 }
 
 /// @brief For given coordinates and direction, is there a wall in front
-/// @param maze 
-/// @param x 
-/// @param y 
-/// @param heading 
-/// @return 
 unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
 {
     unsigned char value = 0;
@@ -253,10 +241,6 @@ unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
 }
 
 /// @brief For given coordinates, state it is X from goal state
-/// @param maze 
-/// @param x 
-/// @param y 
-/// @param distance 
 void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
 {
     maze->maze[x][y] = distance;
@@ -267,11 +251,6 @@ void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
 }
 
 /// @brief Based on current maze state, get best action to get to goal state
-/// @param maze 
-/// @param x 
-/// @param y 
-/// @param heading 
-/// @return 
 Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
 {
     if (maze->maze[x][y] == 0)
@@ -336,19 +315,14 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     {
         return FORWARD;
     }
-    char rightTurns = (newHeading - heading + 4) % 4;
-    char leftTurns = (heading - newHeading + 4) % 4;
+    char rightTurns = (newHeading - heading + NUM_HEADINGS) % NUM_HEADINGS;
+    char leftTurns = (heading - newHeading + NUM_HEADINGS) % NUM_HEADINGS;
     return leftTurns <= rightTurns ? LEFT : RIGHT;
 }
 
 /// @brief Last action hit a newly discovered wall. use floodfill to update maze with new distances
-/// @param maze 
-/// @param x 
-/// @param y 
-/// @param heading 
-void UpdateMaze(struct Maze * maze, int x, int y, Heading heading)
+void UpdateMaze(struct Maze * maze, int x, int y)
 {
-    maze->SetWall(maze, x, y, heading);
     struct Queue * q = QueueInit(255);
     q->QueueEnqueue(q, GetLocationFromCoordinates(x,y));
 

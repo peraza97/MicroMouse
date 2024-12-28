@@ -17,6 +17,7 @@ struct Mouse {
     void(*MoveForward)(struct Mouse * mouse);
     void(*TurnLeft)(struct Mouse * mouse);
     void(*TurnRight)(struct Mouse * mouse);
+    void (*DebugInfo)(struct Mouse * mouse);
 };
 
 struct Mouse * CreateMouse(unsigned char mazeDimension);
@@ -29,6 +30,7 @@ unsigned char CanMoveForward(struct Mouse * mouse);
 void MoveForward(struct Mouse * mouse);
 void TurnLeft(struct Mouse * mouse);
 void TurnRight(struct Mouse * mouse);
+void DebugInfo(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
 
 #endif

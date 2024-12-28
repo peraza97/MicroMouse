@@ -12,6 +12,7 @@ int main(int argc, char* argv[]) {
     Action nextMove = IDLE;
     do 
     {
+        mouse->DebugInfo(mouse);
         nextMove = mouse->GetNextAction(mouse);
         mouse->TakeAction(mouse, nextMove);
     } while (nextMove != IDLE);

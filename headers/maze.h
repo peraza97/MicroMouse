@@ -12,7 +12,7 @@ struct Maze {
     void (*SetCellDistance)(struct Maze* maze, int x, int y, unsigned char distance);
     Action (*GetNextMove)(struct Maze* maze, int x, int y, Heading heading);
     unsigned char (*IsThereAWall)(struct Maze* maze, int x, int y, Heading heading);
-    void (*UpdateMaze)(struct Maze* maze, int x, int y, Heading heading);
+    void (*UpdateMaze)(struct Maze* maze, int x, int y);
 };
 
 struct Maze * CreateMaze(unsigned char mazeDimension);
@@ -25,5 +25,5 @@ void SetWallHelper(struct Maze* maze, int x, int y, Heading heading);
 unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading);
 void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance);
 Action GetNextMove(struct Maze* maze, int x, int y, Heading heading);
-void UpdateMaze(struct Maze* maze, int x, int y, Heading heading);
+void UpdateMaze(struct Maze* maze, int x, int y);
 #endif

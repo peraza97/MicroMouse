@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "mouse.h"
 #include "API.h"
 #include "utils.h"
@@ -17,6 +18,7 @@ struct Mouse * CreateMouse(unsigned char mazeDimension) {
     mouse->MoveForward = &MoveForward;
     mouse->TurnLeft = &TurnLeft;
     mouse->TurnRight = &TurnRight;
+    mouse->DebugInfo = &DebugInfo;
     return mouse;
 }
 
@@ -49,7 +51,8 @@ void TakeAction(struct Mouse * mouse, Action action)
         case FORWARD:
             if (mouse->CanMoveForward(mouse) == 0)
             {
-                mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
+                mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
+                mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
             }
             else
             {
@@ -79,26 +82,46 @@ unsigned char CanMoveForward(struct Mouse * mouse)
 void MoveForward(struct Mouse * mouse)
 {
     API_moveForward();
-    if (mouse->heading % 2 == 0) //left right
+    switch (mouse->heading)
     {
-        mouse->location.x += (mouse->heading == NORTH ? -1 : 1);
-    }
-    else
-    {
-        mouse->location.y += (mouse->heading == EAST ? 1 : -1);
+        case NORTH:
+            mouse->location.x += -1;
+            break;
+        case EAST:
+            mouse->location.y += 1;
+            break;
+        case SOUTH:
+            mouse->location.x += 1;
+            break;
+        case WEST:
+            mouse->location.y += -1;
+            break;
+        default:
+            break;
     }
 }
 
 void TurnLeft(struct Mouse * mouse)
 {
     API_turnLeft();
-    mouse->heading = ComputeModulo((int)mouse->heading - 1, 4);
+    mouse->heading = ComputeModulo((int)mouse->heading - 2, NUM_HEADINGS);
 }
 
 void TurnRight(struct Mouse * mouse)
 {
     API_turnRight();
-    mouse->heading = ComputeModulo((int)mouse->heading + 1, 4);
+    mouse->heading = ComputeModulo((int)mouse->heading + 2, NUM_HEADINGS);
+}
+
+void DebugInfo(struct Mouse * mouse)
+{
+    const char* format = "Mouse State: (%d, %d). %s";
+    char * heading = GetHeadingStr(mouse->heading);
+    int len = snprintf(NULL, 0, format, mouse->location.x, mouse->location.y, heading);
+    char msg[len + 1];
+    snprintf(msg, len + 1, format, mouse->location.x, mouse->location.y, heading);
+    debug_log(msg);
+    debug_log("__________________");
 }
 
 int ComputeModulo(int a, int b)

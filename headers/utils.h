@@ -1,9 +1,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-extern char* HeadingsAbbreviation;
-typedef enum Heading {NORTH, EAST, SOUTH, WEST} Heading;
-typedef enum Action {LEFT, FORWARD, RIGHT, IDLE} Action;
+
+typedef enum Action {LEFT, LEFT45, FORWARD, RIGHT, RIGHT45, IDLE} Action;
+typedef enum Heading {NORTH, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST} Heading;
+#define NUM_HEADINGS 8
 
 struct Location
 {
@@ -11,11 +12,13 @@ struct Location
     int y;
 };
 
+char GetHeadingAbbreviation(Heading heading);
 struct Location* GetLocationFromCoordinates(int x, int y);
+
+char * GetHeadingStr(Heading heading);
 
 // Print helpers
 void PrintNextAction(Action nextMove);
-void PrintHeading(Heading heading);
 void PrintLocation(int x, int y);
 
 // Simulator Helper
