@@ -63,6 +63,15 @@ void API_turnLeft() {
     getAck("turnLeft");
 }
 
+void API_turnRight45() {
+    getAck("turnRight45");
+}
+
+void API_turnLeft45() {
+    getAck("turnLeft45");
+}
+
+
 void API_setWall(int x, int y, char direction) {
     printf("setWall %d %d %c\n", x, y, direction);
     fflush(stdout);
@@ -119,5 +128,11 @@ void API_ackReset() {
 
 void debug_log(char* text) {
     fprintf(stderr, "%s\n", text);
+    fflush(stderr);
+}
+
+void debug_Numlog(unsigned char value)
+{
+    fprintf(stderr, "%d\n", value);
     fflush(stderr);
 }

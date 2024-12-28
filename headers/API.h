@@ -11,6 +11,9 @@ int API_moveForward();  // Returns 0 if crash, else returns 1
 void API_turnRight();
 void API_turnLeft();
 
+void API_turnRight45();
+void API_turnLeft45();
+
 void API_setWall(int x, int y, char direction);
 void API_clearWall(int x, int y, char direction);
 
@@ -27,3 +30,4 @@ int API_wasReset();
 void API_ackReset();
 
 void debug_log(char* text);
+void debug_Numlog(unsigned char value);
