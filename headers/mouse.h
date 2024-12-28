@@ -14,10 +14,12 @@ struct Mouse {
     Action (*GetNextAction)(struct Mouse * mouse);
     void (*TakeAction)(struct Mouse * mouse, Action action);
     unsigned char(*CanMoveForward)(struct Mouse * mouse);
+    void (*CheckWallLeft)(struct Mouse * mouse);
+    void (*CheckWallRight)(struct Mouse * mouse);
     void(*MoveForward)(struct Mouse * mouse);
     void(*TurnLeft)(struct Mouse * mouse);
     void(*TurnRight)(struct Mouse * mouse);
-    void (*DebugInfo)(struct Mouse * mouse);
+    void (*DebugMouseState)(struct Mouse * mouse);
 };
 
 struct Mouse * CreateMouse(unsigned char mazeDimension);
@@ -27,10 +29,12 @@ void SetUpMouse(struct Mouse * mouse);
 Action GetNextAction(struct Mouse * mouse);
 void TakeAction(struct Mouse * mouse, Action action);
 unsigned char CanMoveForward(struct Mouse * mouse);
+void CheckWallLeft(struct Mouse * mouse);
+void CheckWallRight(struct Mouse * mouse);
 void MoveForward(struct Mouse * mouse);
 void TurnLeft(struct Mouse * mouse);
 void TurnRight(struct Mouse * mouse);
-void DebugInfo(struct Mouse * mouse);
+void DebugMouseState(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
 
 #endif
