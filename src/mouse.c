@@ -23,6 +23,7 @@ struct Mouse * CreateMouse(unsigned char mazeDimension) {
     mouse->TurnLeft45 = &TurnLeft45;
     mouse->TurnRight45 = &TurnRight45;
     mouse->DebugMouseState = &DebugMouseState;
+    mouse->SenseWalls = &SenseWalls;
     return mouse;
 }
 
@@ -110,7 +111,11 @@ void CheckWallLeft(struct Mouse * mouse)
 {
     if (API_wallLeft())
     {
-        mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading - 2);
+        Heading wallDir = ComputeModulo((int)mouse->heading - 2, NUM_HEADINGS);
+        if (wallDir == NORTH || wallDir == EAST || wallDir == SOUTH || wallDir == WEST)
+        {
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, wallDir);
+        }
     }
 }
 
@@ -118,7 +123,11 @@ void CheckWallRight(struct Mouse * mouse)
 {
     if (API_wallRight())
     {
-        mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading + 2);
+        Heading wallDir = ComputeModulo((int)mouse->heading + 2, NUM_HEADINGS);
+        if (wallDir == NORTH || wallDir == EAST || wallDir == SOUTH || wallDir == WEST)
+        {
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, wallDir);
+        }
     }
 }
 
@@ -202,6 +211,20 @@ void DebugMouseState(struct Mouse * mouse)
     snprintf(msg, len + 1, format, mouse->location.x, mouse->location.y, heading);
     debug_log(msg);
     debug_log("__________________");
+}
+
+void SenseWalls(struct Mouse * mouse)
+{
+    Heading h = mouse->heading;
+    if (h == NORTH || h == EAST || h == SOUTH || h == WEST)
+    {
+        mouse->CheckWallLeft(mouse);
+        mouse->CheckWallRight(mouse);
+        if (API_wallFront())
+        {
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, h);
+        }
+    }
 }
 
 int ComputeModulo(int a, int b)

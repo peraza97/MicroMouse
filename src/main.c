@@ -13,6 +13,7 @@ int main(int argc, char* argv[]) {
     do 
     {
         mouse->DebugMouseState(mouse);
+        mouse->SenseWalls(mouse);
         nextMove = mouse->GetNextAction(mouse);
         mouse->TakeAction(mouse, nextMove);
     } while (nextMove != IDLE);
