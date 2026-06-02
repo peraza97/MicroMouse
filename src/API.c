@@ -55,6 +55,10 @@ int API_moveForward() {
     return getAck("moveForward");
 }
 
+int API_moveForwardHalf() {
+    return getAck("moveForwardHalf");
+}
+
 void API_turnRight() {
     getAck("turnRight");
 }

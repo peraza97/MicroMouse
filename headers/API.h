@@ -8,6 +8,7 @@ int API_wallRight();
 int API_wallLeft();
 
 int API_moveForward();  // Returns 0 if crash, else returns 1
+int API_moveForwardHalf();  // Returns 0 if crash, else returns 1
 void API_turnRight();
 void API_turnLeft();
 
