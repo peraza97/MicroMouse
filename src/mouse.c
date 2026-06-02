@@ -64,7 +64,21 @@ void TakeAction(struct Mouse * mouse, Action action)
                 }
                 else if (mouse->CanMoveForward(mouse) == 0)
                 {
+                    // Diagonal blocked by unknown corner wall from neighbor cell.
+                    // Move to an adjacent cardinal cell to discover it.
                     mouse->TurnRight45(mouse);
+                    if (mouse->CanMoveForward(mouse))
+                    {
+                        mouse->MoveForward(mouse);
+                    }
+                    else
+                    {
+                        mouse->TurnLeft(mouse);
+                        if (mouse->CanMoveForward(mouse))
+                        {
+                            mouse->MoveForward(mouse);
+                        }
+                    }
                 }
                 else
                 {
