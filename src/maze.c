@@ -240,6 +240,48 @@ unsigned char IsThereAWall(struct Maze* maze, int x, int y, Heading heading)
     return maze->walls[x][y] & value;
 }
 
+unsigned char CanMoveDiagonally(struct Maze* maze, int x, int y, Heading heading)
+{
+    int dx = 0, dy = 0;
+    Heading wall1, wall2;
+
+    switch (heading)
+    {
+        case NORTHEAST:
+            dx = -1; dy = 1;
+            wall1 = NORTH; wall2 = EAST;
+            break;
+        case SOUTHEAST:
+            dx = 1; dy = 1;
+            wall1 = SOUTH; wall2 = EAST;
+            break;
+        case SOUTHWEST:
+            dx = 1; dy = -1;
+            wall1 = SOUTH; wall2 = WEST;
+            break;
+        case NORTHWEST:
+            dx = -1; dy = -1;
+            wall1 = NORTH; wall2 = WEST;
+            break;
+        default:
+            return 0;
+    }
+
+    int newX = x + dx;
+    int newY = y + dy;
+    if (newX < 0 || newX >= maze->mazeDimension || newY < 0 || newY >= maze->mazeDimension)
+    {
+        return 0;
+    }
+
+    if (maze->IsThereAWall(maze, x, y, wall1) || maze->IsThereAWall(maze, x, y, wall2))
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
 /// @brief For given coordinates, state it is X from goal state
 void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
 {
