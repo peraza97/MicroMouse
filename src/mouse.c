@@ -66,6 +66,18 @@ void TakeAction(struct Mouse * mouse, Action action)
                     if (mouse->location.x == oldX && mouse->location.y == oldY)
                     {
                         mouse->TurnRight45(mouse);
+                        if (mouse->CanMoveForward(mouse))
+                        {
+                            mouse->MoveForward(mouse);
+                        }
+                        else
+                        {
+                            mouse->TurnLeft(mouse);
+                            if (mouse->CanMoveForward(mouse))
+                            {
+                                mouse->MoveForward(mouse);
+                            }
+                        }
                     }
                 }
                 else
