@@ -58,13 +58,17 @@ void TakeAction(struct Mouse * mouse, Action action)
             Heading h = mouse->heading;
             if (h == NORTHEAST || h == SOUTHEAST || h == SOUTHWEST || h == NORTHWEST)
             {
-                if (CanMoveDiagonally(mouse->maze, mouse->location.x, mouse->location.y, h))
+                if (!CanMoveDiagonally(mouse->maze, mouse->location.x, mouse->location.y, h))
                 {
-                    mouse->MoveForward(mouse);
+                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                }
+                else if (mouse->CanMoveForward(mouse) == 0)
+                {
+                    mouse->TurnRight45(mouse);
                 }
                 else
                 {
-                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                    mouse->MoveForward(mouse);
                 }
             }
             else

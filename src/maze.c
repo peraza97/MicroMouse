@@ -237,6 +237,23 @@ unsigned char CanMoveDiagonally(struct Maze* maze, int x, int y, Heading heading
         return 0;
     }
 
+    // Check walls from the two cells adjacent to the shared corner
+    int adjX1 = x + DX[wall1];
+    int adjY1 = y + DY[wall1];
+    if (adjX1 >= 0 && adjX1 < maze->mazeDimension && adjY1 >= 0 && adjY1 < maze->mazeDimension)
+    {
+        if (maze->IsThereAWall(maze, adjX1, adjY1, wall2))
+            return 0;
+    }
+
+    int adjX2 = x + DX[wall2];
+    int adjY2 = y + DY[wall2];
+    if (adjX2 >= 0 && adjX2 < maze->mazeDimension && adjY2 >= 0 && adjY2 < maze->mazeDimension)
+    {
+        if (maze->IsThereAWall(maze, adjX2, adjY2, wall1))
+            return 0;
+    }
+
     return 1;
 }
 
