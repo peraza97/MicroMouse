@@ -229,14 +229,18 @@ void DebugMouseState(struct Mouse * mouse)
 
 void SenseWalls(struct Mouse * mouse)
 {
+    int x = mouse->location.x;
+    int y = mouse->location.y;
+    unsigned char wallsBefore = mouse->maze->walls[x][y];
     Heading h = mouse->heading;
+
     if (h == NORTH || h == EAST || h == SOUTH || h == WEST)
     {
         mouse->CheckWallLeft(mouse);
         mouse->CheckWallRight(mouse);
         if (API_wallFront())
         {
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, h);
+            mouse->maze->SetWall(mouse->maze, x, y, h);
         }
     }
     else
@@ -247,14 +251,19 @@ void SenseWalls(struct Mouse * mouse)
         API_turnLeft45();
         if (API_wallFront())
         {
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, cardinal1);
+            mouse->maze->SetWall(mouse->maze, x, y, cardinal1);
         }
         API_turnRight();
         if (API_wallFront())
         {
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, cardinal2);
+            mouse->maze->SetWall(mouse->maze, x, y, cardinal2);
         }
         API_turnLeft45();
+    }
+
+    if (mouse->maze->walls[x][y] != wallsBefore)
+    {
+        mouse->maze->UpdateMaze(mouse->maze, x, y);
     }
 }
 
