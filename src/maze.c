@@ -6,6 +6,11 @@
 #include "API.h"
 #include "queue.h"
 
+static const int DX[8] = {-1, -1,  0,  1,  1,  1,  0, -1};
+static const int DY[8] = { 0,  1,  1,  1,  0, -1, -1, -1};
+
+static unsigned char CanMoveInDirection(struct Maze* maze, int x, int y, Heading heading);
+
 struct Maze * CreateMaze(unsigned char mazeDimension)
 {
     struct Maze *maze = (struct Maze*)malloc(sizeof (struct Maze));
@@ -75,7 +80,6 @@ void FreeMaze(struct Maze * maze)
     free(maze);
 }
 
-/// @brief Set up initial distances using Manhatten distances
 void SetUpInitialDistances(struct Maze * maze)
 {
     struct Queue* q = QueueInit(255);
@@ -90,73 +94,27 @@ void SetUpInitialDistances(struct Maze * maze)
     {
         struct Location * loc = q->QueueDequeue(q);
         unsigned char newDist = maze->maze[loc->x][loc->y] + 1;
-        int tempX = loc->x;
-        int tempY = loc->y;
 
-        //North
-        if (loc->x >= 1)
+        for (int h = 0; h < NUM_HEADINGS; ++h)
         {
-            tempX = loc->x-1;
-            tempY = loc->y;
-            if (maze->maze[tempX][tempY] == 255)
+            if (CanMoveInDirection(maze, loc->x, loc->y, (Heading)h))
             {
-             q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY));
-            }
-            if (maze->maze[tempX][tempY] > newDist)
-            {
-                maze->SetCellDistance(maze, tempX, tempY, newDist);
-            }
-        }
-
-        //East
-        if (loc->y < maze->mazeDimension - 1)
-        {
-            tempX = loc->x;
-            tempY = loc->y+1;
-            if (maze->maze[tempX][tempY] == 255)
-            {
-             q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY));
-            }
-            if (maze->maze[tempX][tempY] > newDist)
-            {
-                maze->SetCellDistance(maze, tempX, tempY, newDist);
-            }
-        }
-
-        //South
-        if (loc->x < maze->mazeDimension - 1)
-        {
-            tempX = loc->x+1;
-            tempY = loc->y;
-            if (maze->maze[tempX][tempY] == 255)
-            {
-             q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY));
-            }
-            if (maze->maze[tempX][tempY] > newDist)
-            {
-                maze->SetCellDistance(maze, tempX, tempY, newDist);
-            }
-        }
-
-        //West
-        if (loc->y >= 1)
-        {
-            tempX = loc->x;
-            tempY = loc->y-1;
-            if (maze->maze[tempX][tempY] == 255)
-            {
-             q->QueueEnqueue(q, GetLocationFromCoordinates(tempX, tempY));
-            }
-            if (maze->maze[tempX][tempY] > newDist)
-            {
-                maze->SetCellDistance(maze, tempX, tempY, newDist);
+                int nx = loc->x + DX[h];
+                int ny = loc->y + DY[h];
+                if (maze->maze[nx][ny] == 255)
+                {
+                    q->QueueEnqueue(q, GetLocationFromCoordinates(nx, ny));
+                }
+                if (maze->maze[nx][ny] > newDist)
+                {
+                    maze->SetCellDistance(maze, nx, ny, newDist);
+                }
             }
         }
 
         free(loc);
     }
     free(q);
-    return;
 }
 
 /// @brief Set Wall at location for Given heading
@@ -282,6 +240,28 @@ unsigned char CanMoveDiagonally(struct Maze* maze, int x, int y, Heading heading
     return 1;
 }
 
+static unsigned char CanMoveInDirection(struct Maze* maze, int x, int y, Heading heading)
+{
+    int newX = x + DX[heading];
+    int newY = y + DY[heading];
+
+    if (newX < 0 || newX >= maze->mazeDimension || newY < 0 || newY >= maze->mazeDimension)
+    {
+        return 0;
+    }
+
+    switch (heading)
+    {
+        case NORTH:
+        case EAST:
+        case SOUTH:
+        case WEST:
+            return maze->IsThereAWall(maze, x, y, heading) == 0;
+        default:
+            return CanMoveDiagonally(maze, x, y, heading);
+    }
+}
+
 /// @brief For given coordinates, state it is X from goal state
 void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
 {
@@ -300,56 +280,20 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
         return IDLE;
     }
 
-    int newX = x;
-    int newY = y;
-    Heading newHeading;
+    Heading newHeading = heading;
     int dist = 255;
 
-    //North
-    if (x >= 1 && maze->IsThereAWall(maze, x, y, NORTH) == 0)
+    for (int h = 0; h < NUM_HEADINGS; ++h)
     {
-        if (maze->maze[x-1][y] < dist)
+        if (CanMoveInDirection(maze, x, y, (Heading)h))
         {
-            newX = x-1;
-            newY = y;
-            newHeading = NORTH;
-            dist = maze->maze[x-1][y];
-        }
-    }
-
-    //East
-    if (y < maze->mazeDimension - 1 && maze->IsThereAWall(maze, x, y, EAST) == 0)
-    {
-        if (maze->maze[x][y+1] < dist)
-        {
-            newX = x;
-            newY = y+1;
-            newHeading = EAST;
-            dist = maze->maze[x][y+1];
-        }
-    }
-
-    //South
-    if (x < maze->mazeDimension - 1 && maze->IsThereAWall(maze, x, y, SOUTH) == 0)
-    {
-        if (maze->maze[x+1][y] < dist)
-        {
-            newX = x+1;
-            newY = y;
-            newHeading = SOUTH;
-            dist = maze->maze[x+1][y];
-        }
-    }
-
-    //West
-    if (y >= 1 && maze->IsThereAWall(maze, x, y, WEST) == 0)
-    {
-        if (maze->maze[x][y-1] < dist)
-        {
-            newX = x;
-            newY = y-1;
-            newHeading = WEST;
-            dist = maze->maze[x][y-1];
+            int nx = x + DX[h];
+            int ny = y + DY[h];
+            if (maze->maze[nx][ny] < dist)
+            {
+                newHeading = (Heading)h;
+                dist = maze->maze[nx][ny];
+            }
         }
     }
 
@@ -357,8 +301,12 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
     {
         return FORWARD;
     }
+
     char rightTurns = (newHeading - heading + NUM_HEADINGS) % NUM_HEADINGS;
     char leftTurns = (heading - newHeading + NUM_HEADINGS) % NUM_HEADINGS;
+
+    if (rightTurns == 1) return RIGHT45;
+    if (leftTurns == 1) return LEFT45;
     return leftTurns <= rightTurns ? LEFT : RIGHT;
 }
 
@@ -366,47 +314,26 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
 void UpdateMaze(struct Maze * maze, int x, int y)
 {
     struct Queue * q = QueueInit(255);
-    q->QueueEnqueue(q, GetLocationFromCoordinates(x,y));
+    q->QueueEnqueue(q, GetLocationFromCoordinates(x, y));
 
     while(q->QueueIsEmpty(q) == 0)
     {
         struct Location * loc = q->QueueDequeue(q);
 
-        // set up accessible neighbors
-        struct Location * accessibleNeighbors[5];
+        struct Location * accessibleNeighbors[8];
         int neighborIndex = 0;
-        unsigned char found = 0;
 
-        //North
-        if (loc->x >= 1 && maze->IsThereAWall(maze, loc->x, loc->y, NORTH) == 0)
+        for (int h = 0; h < NUM_HEADINGS; ++h)
         {
-            found = 1;
-            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x-1,loc->y);
+            if (CanMoveInDirection(maze, loc->x, loc->y, (Heading)h))
+            {
+                int nx = loc->x + DX[h];
+                int ny = loc->y + DY[h];
+                accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(nx, ny);
+            }
         }
 
-        //East
-        if (loc->y < maze->mazeDimension - 1 && maze->IsThereAWall(maze, loc->x, loc->y, EAST) == 0)
-        {
-            found = 1;
-            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y+1);
-        }
-
-        //South
-        if (loc->x < maze->mazeDimension - 1 && maze->IsThereAWall(maze, loc->x, loc->y, SOUTH) == 0)
-        {
-            found = 1;
-            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x+1, loc->y);
-        }
-
-        //West
-        if (loc->y >= 1 && maze->IsThereAWall(maze, loc->x, loc->y, WEST) == 0)
-        {
-            found = 1;
-            accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(loc->x, loc->y-1);
-        }
-
-        // there is at least 1 accessible neighbor, check if it needs an update
-        if (found > 0)
+        if (neighborIndex > 0)
         {
             unsigned char min = 255;
             for(int i = 0; i < neighborIndex; ++i)
