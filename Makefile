@@ -3,54 +3,57 @@ CFLAGS = -I ./headers
 SRC_DIR = src
 TEST_DIR = test
 OBJ_DIR = bin
-PROJ_NAME = micromouse
-TEST_NAME = tester
 RM = rm
 
-SRC_FILES = $(wildcard $(SRC_DIR)/*.c)
-OBJ_FILES = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES))
+# Shared sources (API, queue, main)
+SHARED_SRC = $(SRC_DIR)/main.c $(SRC_DIR)/API.c $(SRC_DIR)/queue.c
+SHARED_OBJ = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SHARED_SRC))
 
-TEST_SRC_FILES = $(wildcard $(TEST_DIR)/*.c)
-TEST_OBJ_FILES = $(patsubst $(TEST_DIR)/%.c,$(OBJ_DIR)/%.o,$(TEST_SRC_FILES))
+# Cardinal solver
+CARDINAL_SRC = $(SRC_DIR)/maze_cardinal.c $(SRC_DIR)/mouse_cardinal.c $(SRC_DIR)/utils_cardinal.c
+CARDINAL_OBJ = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(CARDINAL_SRC))
 
-SRC_FILES_NO_MAIN = $(filter-out $(SRC_DIR)/main.c, $(SRC_FILES))
-OBJ_FILES_NO_MAIN = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(SRC_FILES_NO_MAIN))
+# Diagonal solver
+DIAGONAL_SRC = $(SRC_DIR)/maze_diagonal.c $(SRC_DIR)/mouse_diagonal.c $(SRC_DIR)/utils_diagonal.c
+DIAGONAL_OBJ = $(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(DIAGONAL_SRC))
 
-rebuild: clean all
+# Test sources
+TEST_SRC = $(wildcard $(TEST_DIR)/*.c)
+TEST_OBJ = $(patsubst $(TEST_DIR)/%.c,$(OBJ_DIR)/%.o,$(TEST_SRC))
 
-all: $(OBJ_DIR)/$(PROJ_NAME)
+.PHONY: all cardinal diagonal test clean run_cardinal run_diagonal
 
-$(OBJ_DIR)/$(PROJ_NAME): $(OBJ_FILES)
-	$(CC) $(CFLAGS) $^ $(LDLIBS) -o $@  
+all: cardinal diagonal
 
-test: $(OBJ_DIR)/$(TEST_NAME)
+cardinal: $(OBJ_DIR)/cardinal
 
-$(OBJ_DIR)/$(TEST_NAME): $(OBJ_FILES_NO_MAIN) $(TEST_OBJ_FILES)
-	$(CC) $(CFLAGS) $^ $(LDLIBS) -o $@  
+diagonal: $(OBJ_DIR)/diagonal
 
-#Compile .c files in /sc
+$(OBJ_DIR)/cardinal: $(SHARED_OBJ) $(CARDINAL_OBJ) | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $^ -o $@
+
+$(OBJ_DIR)/diagonal: $(SHARED_OBJ) $(DIAGONAL_OBJ) | $(OBJ_DIR)
+	$(CC) $(CFLAGS) $^ -o $@
+
+test: $(OBJ_DIR)/tester
+
+$(OBJ_DIR)/tester: $(DIAGONAL_OBJ) $(OBJ_DIR)/API.o $(OBJ_DIR)/queue.o $(TEST_OBJ)
+	$(CC) $(CFLAGS) $^ -o $@
+
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@ 
+	$(CC) $(CFLAGS) -c $< -o $@
 
-#Compile .c files in /test
 $(OBJ_DIR)/%.o: $(TEST_DIR)/%.c | $(OBJ_DIR)
-	$(CC) $(CFLAGS) -c $< -o $@ 
+	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR):
-	mkdir -p $(OBJ_DIR) 
+	mkdir -p $(OBJ_DIR)
 
-.PHONY: clean
-clean: 
+clean:
 	$(RM) -f ./$(OBJ_DIR)/*
 
-.PHONY: run
-run: 
-	./$(OBJ_DIR)/$(PROJ_NAME)
+run_cardinal:
+	./$(OBJ_DIR)/cardinal
 
-.PHONY: srun
-srun: 
-	sudo ./$(OBJ_DIR)/$(PROJ_NAME)
-
-.PHONY: run_tests
-run_tests: 
-	./$(OBJ_DIR)/$(TEST_NAME)
+run_diagonal:
+	./$(OBJ_DIR)/diagonal

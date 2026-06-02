@@ -42,5 +42,6 @@ void TurnRight45(struct Mouse * mouse);
 void DebugMouseState(struct Mouse * mouse);
 void SenseWalls(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
+void SolveMaze(struct Mouse * mouse);
 
 #endif

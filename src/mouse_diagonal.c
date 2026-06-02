@@ -271,3 +271,16 @@ int ComputeModulo(int a, int b)
 {
     return ((a % b) + b) % b;
 }
+
+void SolveMaze(struct Mouse * mouse)
+{
+    debug_log("Running diagonal solver...");
+    Action nextMove = IDLE;
+    do
+    {
+        mouse->DebugMouseState(mouse);
+        mouse->SenseWalls(mouse);
+        nextMove = mouse->GetNextAction(mouse);
+        mouse->TakeAction(mouse, nextMove);
+    } while (nextMove != IDLE);
+}

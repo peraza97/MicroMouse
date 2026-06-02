@@ -7,16 +7,8 @@
 int main(int argc, char* argv[]) {
     struct Mouse* mouse = CreateMouse(16);
     mouse->SetUpMouse(mouse);
-    
-    debug_log("Running...");
-    Action nextMove = IDLE;
-    do 
-    {
-        mouse->DebugMouseState(mouse);
-        mouse->SenseWalls(mouse);
-        nextMove = mouse->GetNextAction(mouse);
-        mouse->TakeAction(mouse, nextMove);
-    } while (nextMove != IDLE);
+
+    SolveMaze(mouse);
 
     FreeMouse(mouse);
 }
