@@ -117,6 +117,21 @@ void SetUpInitialDistances(struct Maze * maze)
     free(q);
 }
 
+void RefloodMaze(struct Maze* maze)
+{
+    int midPoint = maze->mazeDimension / 2;
+    for (int i = 0; i < maze->mazeDimension; i++)
+        for (int j = 0; j < maze->mazeDimension; j++)
+            maze->SetCellDistance(maze, i, j, 255);
+
+    maze->SetCellDistance(maze, midPoint, midPoint, 0);
+    maze->SetCellDistance(maze, midPoint, midPoint - 1, 0);
+    maze->SetCellDistance(maze, midPoint - 1, midPoint, 0);
+    maze->SetCellDistance(maze, midPoint - 1, midPoint - 1, 0);
+
+    SetUpInitialDistances(maze);
+}
+
 /// @brief Set Wall at location for Given heading
 void SetWall(struct Maze* maze, int x, int y, Heading heading)
 {

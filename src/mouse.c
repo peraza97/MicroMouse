@@ -82,7 +82,7 @@ void TakeAction(struct Mouse * mouse, Action action)
                 }
                 else
                 {
-                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                    RefloodMaze(mouse->maze);
                 }
             }
             else
@@ -90,7 +90,7 @@ void TakeAction(struct Mouse * mouse, Action action)
                 if (mouse->CanMoveForward(mouse) == 0)
                 {
                     mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
-                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                    RefloodMaze(mouse->maze);
                 }
                 else
                 {
@@ -263,12 +263,7 @@ void SenseWalls(struct Mouse * mouse)
 
     if (mouse->maze->walls[x][y] != wallsBefore)
     {
-        unsigned char dim = mouse->maze->mazeDimension;
-        mouse->maze->UpdateMaze(mouse->maze, x, y);
-        if (x > 0)     mouse->maze->UpdateMaze(mouse->maze, x - 1, y);
-        if (x < dim-1)  mouse->maze->UpdateMaze(mouse->maze, x + 1, y);
-        if (y > 0)     mouse->maze->UpdateMaze(mouse->maze, x, y - 1);
-        if (y < dim-1)  mouse->maze->UpdateMaze(mouse->maze, x, y + 1);
+        RefloodMaze(mouse->maze);
     }
 }
 
