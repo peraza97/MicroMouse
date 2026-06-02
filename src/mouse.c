@@ -20,6 +20,8 @@ struct Mouse * CreateMouse(unsigned char mazeDimension) {
     mouse->MoveForward = &MoveForward;
     mouse->TurnLeft = &TurnLeft;
     mouse->TurnRight = &TurnRight;
+    mouse->TurnLeft45 = &TurnLeft45;
+    mouse->TurnRight45 = &TurnRight45;
     mouse->DebugMouseState = &DebugMouseState;
     return mouse;
 }
@@ -51,21 +53,44 @@ void TakeAction(struct Mouse * mouse, Action action)
     switch (action)
     {
         case FORWARD:
-            if (mouse->CanMoveForward(mouse) == 0)
+        {
+            Heading h = mouse->heading;
+            if (h == NORTHEAST || h == SOUTHEAST || h == SOUTHWEST || h == NORTHWEST)
             {
-                mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
-                mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                if (CanMoveDiagonally(mouse->maze, mouse->location.x, mouse->location.y, h))
+                {
+                    mouse->MoveForward(mouse);
+                }
+                else
+                {
+                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                }
             }
             else
             {
-                mouse->MoveForward(mouse);
+                if (mouse->CanMoveForward(mouse) == 0)
+                {
+                    mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
+                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
+                }
+                else
+                {
+                    mouse->MoveForward(mouse);
+                }
             }
             break;
+        }
         case LEFT:
             mouse->TurnLeft(mouse);
             break;
         case RIGHT:
             mouse->TurnRight(mouse);
+            break;
+        case LEFT45:
+            mouse->TurnLeft45(mouse);
+            break;
+        case RIGHT45:
+            mouse->TurnRight45(mouse);
             break;
         default:
             break;
@@ -99,22 +124,47 @@ void CheckWallRight(struct Mouse * mouse)
 
 void MoveForward(struct Mouse * mouse)
 {
-    API_moveForward();
     switch (mouse->heading)
     {
         case NORTH:
+            API_moveForward();
             mouse->location.x += -1;
             break;
         case EAST:
+            API_moveForward();
             mouse->location.y += 1;
             break;
         case SOUTH:
+            API_moveForward();
             mouse->location.x += 1;
             break;
         case WEST:
+            API_moveForward();
             mouse->location.y += -1;
             break;
-        default:
+        case NORTHEAST:
+            API_moveForwardHalf();
+            API_moveForwardHalf();
+            mouse->location.x += -1;
+            mouse->location.y += 1;
+            break;
+        case SOUTHEAST:
+            API_moveForwardHalf();
+            API_moveForwardHalf();
+            mouse->location.x += 1;
+            mouse->location.y += 1;
+            break;
+        case SOUTHWEST:
+            API_moveForwardHalf();
+            API_moveForwardHalf();
+            mouse->location.x += 1;
+            mouse->location.y += -1;
+            break;
+        case NORTHWEST:
+            API_moveForwardHalf();
+            API_moveForwardHalf();
+            mouse->location.x += -1;
+            mouse->location.y += -1;
             break;
     }
 }
@@ -129,6 +179,18 @@ void TurnRight(struct Mouse * mouse)
 {
     API_turnRight();
     mouse->heading = ComputeModulo((int)mouse->heading + 2, NUM_HEADINGS);
+}
+
+void TurnLeft45(struct Mouse * mouse)
+{
+    API_turnLeft45();
+    mouse->heading = ComputeModulo((int)mouse->heading - 1, NUM_HEADINGS);
+}
+
+void TurnRight45(struct Mouse * mouse)
+{
+    API_turnRight45();
+    mouse->heading = ComputeModulo((int)mouse->heading + 1, NUM_HEADINGS);
 }
 
 void DebugMouseState(struct Mouse * mouse)

@@ -19,6 +19,8 @@ struct Mouse {
     void(*MoveForward)(struct Mouse * mouse);
     void(*TurnLeft)(struct Mouse * mouse);
     void(*TurnRight)(struct Mouse * mouse);
+    void(*TurnLeft45)(struct Mouse * mouse);
+    void(*TurnRight45)(struct Mouse * mouse);
     void (*DebugMouseState)(struct Mouse * mouse);
 };
 
@@ -34,6 +36,8 @@ void CheckWallRight(struct Mouse * mouse);
 void MoveForward(struct Mouse * mouse);
 void TurnLeft(struct Mouse * mouse);
 void TurnRight(struct Mouse * mouse);
+void TurnLeft45(struct Mouse * mouse);
+void TurnRight45(struct Mouse * mouse);
 void DebugMouseState(struct Mouse * mouse);
 int ComputeModulo(int a, int b);
 
