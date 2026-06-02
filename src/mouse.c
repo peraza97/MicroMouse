@@ -152,26 +152,22 @@ void MoveForward(struct Mouse * mouse)
             mouse->location.y += -1;
             break;
         case NORTHEAST:
-            API_moveForwardHalf();
-            API_moveForwardHalf();
+            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
             mouse->location.x += -1;
             mouse->location.y += 1;
             break;
         case SOUTHEAST:
-            API_moveForwardHalf();
-            API_moveForwardHalf();
+            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
             mouse->location.x += 1;
             mouse->location.y += 1;
             break;
         case SOUTHWEST:
-            API_moveForwardHalf();
-            API_moveForwardHalf();
+            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
             mouse->location.x += 1;
             mouse->location.y += -1;
             break;
         case NORTHWEST:
-            API_moveForwardHalf();
-            API_moveForwardHalf();
+            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
             mouse->location.x += -1;
             mouse->location.y += -1;
             break;
@@ -224,6 +220,23 @@ void SenseWalls(struct Mouse * mouse)
         {
             mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, h);
         }
+    }
+    else
+    {
+        Heading cardinal1 = ComputeModulo((int)h - 1, NUM_HEADINGS);
+        Heading cardinal2 = ComputeModulo((int)h + 1, NUM_HEADINGS);
+
+        API_turnLeft45();
+        if (API_wallFront())
+        {
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, cardinal1);
+        }
+        API_turnRight();
+        if (API_wallFront())
+        {
+            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, cardinal2);
+        }
+        API_turnLeft45();
     }
 }
 
