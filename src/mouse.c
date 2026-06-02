@@ -58,31 +58,19 @@ void TakeAction(struct Mouse * mouse, Action action)
             Heading h = mouse->heading;
             if (h == NORTHEAST || h == SOUTHEAST || h == SOUTHWEST || h == NORTHWEST)
             {
-                if (!CanMoveDiagonally(mouse->maze, mouse->location.x, mouse->location.y, h))
+                if (CanMoveDiagonally(mouse->maze, mouse->location.x, mouse->location.y, h))
                 {
-                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
-                }
-                else if (mouse->CanMoveForward(mouse) == 0)
-                {
-                    // Diagonal blocked by unknown corner wall from neighbor cell.
-                    // Move to an adjacent cardinal cell to discover it.
-                    mouse->TurnRight45(mouse);
-                    if (mouse->CanMoveForward(mouse))
+                    int oldX = mouse->location.x;
+                    int oldY = mouse->location.y;
+                    mouse->MoveForward(mouse);
+                    if (mouse->location.x == oldX && mouse->location.y == oldY)
                     {
-                        mouse->MoveForward(mouse);
-                    }
-                    else
-                    {
-                        mouse->TurnLeft(mouse);
-                        if (mouse->CanMoveForward(mouse))
-                        {
-                            mouse->MoveForward(mouse);
-                        }
+                        mouse->TurnRight45(mouse);
                     }
                 }
                 else
                 {
-                    mouse->MoveForward(mouse);
+                    mouse->maze->UpdateMaze(mouse->maze, mouse->location.x, mouse->location.y);
                 }
             }
             else
