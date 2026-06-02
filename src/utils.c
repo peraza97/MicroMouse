@@ -34,12 +34,20 @@ char* GetHeadingStr(Heading heading)
     {
     case NORTH:
         return "NORTH";
-    case WEST:
-        return "WEST";
-    case SOUTH:
-        return "SOUTH";
+    case NORTHEAST:
+        return "NORTHEAST";
     case EAST:
         return "EAST";
+    case SOUTHEAST:
+        return "SOUTHEAST";
+    case SOUTH:
+        return "SOUTH";
+    case SOUTHWEST:
+        return "SOUTHWEST";
+    case WEST:
+        return "WEST";
+    case NORTHWEST:
+        return "NORTHWEST";
     default:
         return "?";
     }
