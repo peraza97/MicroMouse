@@ -15,8 +15,6 @@ struct Mouse * CreateMouse(unsigned char mazeDimension) {
     mouse->GetNextAction = &GetNextAction;
     mouse->TakeAction = &TakeAction;
     mouse->CanMoveForward = &CanMoveForward;
-    mouse->CheckWallLeft = &CheckWallLeft;
-    mouse->CheckWallRight = &CheckWallRight;
     mouse->MoveForward = &MoveForward;
     mouse->TurnLeft = &TurnLeft;
     mouse->TurnRight = &TurnRight;
@@ -81,21 +79,7 @@ unsigned char CanMoveForward(struct Mouse * mouse)
     return 1;
 }
 
-void CheckWallLeft(struct Mouse * mouse)
-{
-    if (API_wallLeft())
-    {
-        mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading - 2);
-    }
-}
 
-void CheckWallRight(struct Mouse * mouse)
-{
-    if (API_wallRight())
-    {
-        mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading + 2);
-    }
-}
 
 void MoveForward(struct Mouse * mouse)
 {
