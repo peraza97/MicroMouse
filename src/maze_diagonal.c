@@ -9,13 +9,19 @@
 static const int DX[8] = {-1, -1,  0,  1,  1,  1,  0, -1};
 static const int DY[8] = { 0,  1,  1,  1,  0, -1, -1, -1};
 
-static unsigned char CanMoveInDirection(struct Maze* maze, int x, int y, Heading heading);
+static void SetSemiDistance(struct Maze* maze, int x, int y, unsigned char distance);
+static unsigned char IsGoal(struct Maze* maze, int x, int y);
+static void SetHalfStepWall(struct Maze* maze, struct HalfStep *step,
+                            int wallX, int wallY, Heading wallHeading);
 
 struct Maze * CreateMaze(unsigned char mazeDimension)
 {
     struct Maze *maze = (struct Maze*)malloc(sizeof (struct Maze));
     maze->mazeDimension = mazeDimension;
-    maze->maze = (unsigned char **)malloc(maze->mazeDimension * sizeof(unsigned char *));
+    maze->maze = NULL;
+    maze->walls = NULL;
+    maze->semiDistances = NULL;
+    maze->semiDimension = (unsigned char)(mazeDimension * 2 + 1);
 
     maze->SetCellDistance = &SetCellDistance;
     maze->SetUpMaze = &SetUpMaze;
@@ -34,11 +40,18 @@ void SetUpMaze(struct Maze* maze)
     maze->walls = (unsigned char **)malloc(maze->mazeDimension * sizeof(unsigned char*));
     for (int i = 0; i < maze->mazeDimension; i++) 
     {
-        maze->maze[i] = (char *)malloc(maze->mazeDimension * sizeof(unsigned char));
-        maze->walls[i] = (char *)malloc(maze->mazeDimension * sizeof(unsigned char));
+        maze->maze[i] = malloc(maze->mazeDimension * sizeof(unsigned char));
+        maze->walls[i] = malloc(maze->mazeDimension * sizeof(unsigned char));
     }
 
-    // Set initial distances
+    maze->semiDimension = (unsigned char)(maze->mazeDimension * 2 + 1);
+    maze->semiDistances = malloc(maze->semiDimension * sizeof(unsigned char *));
+    for (int i = 0; i < maze->semiDimension; ++i)
+    {
+        maze->semiDistances[i] = malloc(maze->semiDimension * sizeof(unsigned char));
+    }
+
+    // Set initial cell display values and wall map.
     for (int i = 0; i < maze->mazeDimension; i++) 
     {
         for (int j = 0; j < maze->mazeDimension; j++) 
@@ -64,7 +77,7 @@ void SetUpMaze(struct Maze* maze)
         maze->SetWall(maze, maze->mazeDimension - 1, x, SOUTH);
     }
 
-    //try and set up initial distances
+    // Populate the half-step distance field.
     SetUpInitialDistances(maze);
 }
 
@@ -77,6 +90,11 @@ void FreeMaze(struct Maze * maze)
     }
     free(maze->maze);
     free(maze->walls);
+    for (int i = 0; i < maze->semiDimension; ++i)
+    {
+        free(maze->semiDistances[i]);
+    }
+    free(maze->semiDistances);
     free(maze);
 }
 
@@ -85,50 +103,67 @@ void SetUpInitialDistances(struct Maze * maze)
     struct Queue* q = QueueInit(255);
     int midPoint = maze->mazeDimension/2;
 
-    q->QueueEnqueue(q, GetLocationFromCoordinates(midPoint, midPoint));
-    q->QueueEnqueue(q, GetLocationFromCoordinates(midPoint, midPoint-1));
-    q->QueueEnqueue(q, GetLocationFromCoordinates(midPoint-1, midPoint));
-    q->QueueEnqueue(q, GetLocationFromCoordinates(midPoint-1, midPoint-1));
+    for (int x = 0; x < maze->semiDimension; ++x)
+        for (int y = 0; y < maze->semiDimension; ++y)
+            SetSemiDistance(maze, x, y, 255);
+
+    /* Goals are cell centres, not corner posts or edge midpoints. */
+    for (int x = midPoint - 1; x <= midPoint; ++x)
+    {
+        for (int y = midPoint - 1; y <= midPoint; ++y)
+        {
+            int sx = x * 2 + 1;
+            int sy = y * 2 + 1;
+            SetSemiDistance(maze, sx, sy, 0);
+            q->QueueEnqueue(q, GetLocationFromCoordinates(sx, sy));
+        }
+    }
 
     while (q->QueueIsEmpty(q) == 0)
     {
         struct Location * loc = q->QueueDequeue(q);
-        unsigned char newDist = maze->maze[loc->x][loc->y] + 1;
+        unsigned char newDist = maze->semiDistances[loc->x][loc->y] + 1;
 
         for (int h = 0; h < NUM_HEADINGS; ++h)
         {
-            if (CanMoveInDirection(maze, loc->x, loc->y, (Heading)h))
+            /* Diagonal edge transitions are directional in mms: the wall
+               checked at an edge midpoint depends on the exit direction.
+               Flood from predecessor states so the stored distance remains a
+               true cost-to-go for the forward controller. */
+            int px = loc->x - DX[h];
+            int py = loc->y - DY[h];
+            if (px >= 0 && px < maze->semiDimension &&
+                py >= 0 && py < maze->semiDimension)
             {
-                int nx = loc->x + DX[h];
-                int ny = loc->y + DY[h];
-                if (maze->maze[nx][ny] == 255)
+                struct HalfStep step;
+                DescribeHalfStep(maze, px, py, (Heading)h, &step);
+                if (!step.isOpen)
+                    continue;
+
+                if (maze->semiDistances[px][py] == 255)
                 {
-                    q->QueueEnqueue(q, GetLocationFromCoordinates(nx, ny));
+                    q->QueueEnqueue(q, GetLocationFromCoordinates(px, py));
                 }
-                if (maze->maze[nx][ny] > newDist)
+                if (maze->semiDistances[px][py] > newDist)
                 {
-                    maze->SetCellDistance(maze, nx, ny, newDist);
+                    SetSemiDistance(maze, px, py, newDist);
                 }
             }
         }
 
         free(loc);
     }
-    free(q);
+    FreeQueue(q);
+
+    /* Keep the familiar cell-centre visualisation in mms. */
+    for (int x = 0; x < maze->mazeDimension; ++x)
+        for (int y = 0; y < maze->mazeDimension; ++y)
+            maze->SetCellDistance(maze, x, y,
+                                  maze->semiDistances[x * 2 + 1][y * 2 + 1]);
 }
 
 void RefloodMaze(struct Maze* maze)
 {
-    int midPoint = maze->mazeDimension / 2;
-    for (int i = 0; i < maze->mazeDimension; i++)
-        for (int j = 0; j < maze->mazeDimension; j++)
-            maze->SetCellDistance(maze, i, j, 255);
-
-    maze->SetCellDistance(maze, midPoint, midPoint, 0);
-    maze->SetCellDistance(maze, midPoint, midPoint - 1, 0);
-    maze->SetCellDistance(maze, midPoint - 1, midPoint, 0);
-    maze->SetCellDistance(maze, midPoint - 1, midPoint - 1, 0);
-
     SetUpInitialDistances(maze);
 }
 
@@ -272,26 +307,92 @@ unsigned char CanMoveDiagonally(struct Maze* maze, int x, int y, Heading heading
     return 1;
 }
 
-static unsigned char CanMoveInDirection(struct Maze* maze, int x, int y, Heading heading)
+/*
+ * Single source of truth for the doubled-grid geometry. mms permits cell
+ * centres and edge midpoints, never corner posts. Every structurally valid
+ * half-step is associated with one cardinal wall, which is used both to plan
+ * around known walls and to record a wall reported by the simulator.
+ */
+void DescribeHalfStep(struct Maze* maze, int x, int y, Heading heading,
+                      struct HalfStep *step)
 {
     int newX = x + DX[heading];
     int newY = y + DY[heading];
 
-    if (newX < 0 || newX >= maze->mazeDimension || newY < 0 || newY >= maze->mazeDimension)
+    *step = (struct HalfStep){0};
+    step->nextX = newX;
+    step->nextY = newY;
+
+    if (newX < 0 || newX >= maze->semiDimension ||
+        newY < 0 || newY >= maze->semiDimension ||
+        (newX % 2 == 0 && newY % 2 == 0))
+        return;
+
+    /* Cell centre: only cardinal moves can leave it. */
+    if (x % 2 == 1 && y % 2 == 1)
     {
-        return 0;
+        if (heading % 2 == 0)
+            SetHalfStepWall(maze, step, x / 2, y / 2, heading);
+        return;
     }
 
-    switch (heading)
+    /* Horizontal cell boundary (between rows r - 1 and r). */
+    if (x % 2 == 0 && y % 2 == 1)
     {
-        case NORTH:
-        case EAST:
-        case SOUTH:
-        case WEST:
-            return maze->IsThereAWall(maze, x, y, heading) == 0;
-        default:
-            return CanMoveDiagonally(maze, x, y, heading);
+        int r = x / 2;
+        int c = y / 2;
+        if ((heading == NORTH || heading == SOUTH) &&
+            r > 0 && r < maze->mazeDimension)
+            SetHalfStepWall(maze, step, r, c, NORTH);
+        else if ((heading == NORTHEAST || heading == NORTHWEST) && r > 0)
+            SetHalfStepWall(maze, step, r - 1, c,
+                            heading == NORTHEAST ? EAST : WEST);
+        else if ((heading == SOUTHEAST || heading == SOUTHWEST) &&
+                 r < maze->mazeDimension)
+            SetHalfStepWall(maze, step, r, c,
+                            heading == SOUTHEAST ? EAST : WEST);
+        return;
     }
+
+    /* Vertical cell boundary (between columns c - 1 and c). */
+    if (x % 2 == 1 && y % 2 == 0)
+    {
+        int r = x / 2;
+        int c = y / 2;
+        if ((heading == EAST || heading == WEST) &&
+            c > 0 && c < maze->mazeDimension)
+            SetHalfStepWall(maze, step, r, c, WEST);
+        else if ((heading == NORTHEAST || heading == SOUTHEAST) &&
+                 c < maze->mazeDimension)
+            SetHalfStepWall(maze, step, r, c,
+                            heading == NORTHEAST ? NORTH : SOUTH);
+        else if ((heading == NORTHWEST || heading == SOUTHWEST) && c > 0)
+            SetHalfStepWall(maze, step, r, c - 1,
+                            heading == NORTHWEST ? NORTH : SOUTH);
+    }
+}
+
+static void SetHalfStepWall(struct Maze* maze, struct HalfStep *step,
+                            int wallX, int wallY, Heading wallHeading)
+{
+    step->isValid = 1;
+    step->wallX = wallX;
+    step->wallY = wallY;
+    step->wallHeading = wallHeading;
+    step->isOpen = maze->IsThereAWall(maze, wallX, wallY, wallHeading) == 0;
+}
+
+static void SetSemiDistance(struct Maze* maze, int x, int y, unsigned char distance)
+{
+    maze->semiDistances[x][y] = distance;
+}
+
+static unsigned char IsGoal(struct Maze* maze, int x, int y)
+{
+    int firstGoal = maze->mazeDimension - 1;
+    int secondGoal = maze->mazeDimension + 1;
+    return (x == firstGoal || x == secondGoal) &&
+           (y == firstGoal || y == secondGoal);
 }
 
 /// @brief For given coordinates, state it is X from goal state
@@ -307,24 +408,35 @@ void SetCellDistance(struct Maze* maze, int x, int y, unsigned char distance)
 /// @brief Based on current maze state, get best action to get to goal state
 Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
 {
-    if (maze->maze[x][y] == 0)
+    if (IsGoal(maze, x, y))
     {
         return IDLE;
     }
 
     Heading newHeading = heading;
     int dist = 255;
+    int turnCost = NUM_HEADINGS;
 
     for (int h = 0; h < NUM_HEADINGS; ++h)
     {
-        if (CanMoveInDirection(maze, x, y, (Heading)h))
+        struct HalfStep step;
+        DescribeHalfStep(maze, x, y, (Heading)h, &step);
+        if (step.isOpen)
         {
-            int nx = x + DX[h];
-            int ny = y + DY[h];
-            if (maze->maze[nx][ny] < dist)
+            int nx = step.nextX;
+            int ny = step.nextY;
+            int candidateTurnCost = ((h - heading + NUM_HEADINGS) % NUM_HEADINGS);
+            int leftTurnCost = ((heading - h + NUM_HEADINGS) % NUM_HEADINGS);
+            if (leftTurnCost < candidateTurnCost)
+                candidateTurnCost = leftTurnCost;
+
+            if (maze->semiDistances[nx][ny] < dist ||
+                (maze->semiDistances[nx][ny] == dist &&
+                 candidateTurnCost < turnCost))
             {
                 newHeading = (Heading)h;
-                dist = maze->maze[nx][ny];
+                dist = maze->semiDistances[nx][ny];
+                turnCost = candidateTurnCost;
             }
         }
     }
@@ -345,54 +457,7 @@ Action GetNextMove(struct Maze* maze, int x, int y, Heading heading)
 /// @brief Last action hit a newly discovered wall. use floodfill to update maze with new distances
 void UpdateMaze(struct Maze * maze, int x, int y)
 {
-    struct Queue * q = QueueInit(255);
-    q->QueueEnqueue(q, GetLocationFromCoordinates(x, y));
-
-    while(q->QueueIsEmpty(q) == 0)
-    {
-        struct Location * loc = q->QueueDequeue(q);
-
-        struct Location * accessibleNeighbors[8];
-        int neighborIndex = 0;
-
-        for (int h = 0; h < NUM_HEADINGS; ++h)
-        {
-            if (CanMoveInDirection(maze, loc->x, loc->y, (Heading)h))
-            {
-                int nx = loc->x + DX[h];
-                int ny = loc->y + DY[h];
-                accessibleNeighbors[neighborIndex++] = GetLocationFromCoordinates(nx, ny);
-            }
-        }
-
-        if (neighborIndex > 0)
-        {
-            unsigned char min = 255;
-            for(int i = 0; i < neighborIndex; ++i)
-            {
-                if (maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y] <= min)
-                {
-                    min = maze->maze[accessibleNeighbors[i]->x][accessibleNeighbors[i]->y];
-                }
-            }
-
-            if (maze->maze[loc->x][loc->y] <= min)
-            {
-                maze->SetCellDistance(maze, loc->x, loc->y, min+1);
-                for(int i = 0; i < neighborIndex; ++i)
-                {
-                    q->QueueEnqueue(q, accessibleNeighbors[i]);
-                }
-            }
-            else
-            {
-                for(int i = 0; i < neighborIndex; ++i)
-                {
-                    free(accessibleNeighbors[i]);
-                }
-            }
-        }
-        free(loc);
-    }
-    FreeQueue(q);
+    (void)x;
+    (void)y;
+    RefloodMaze(maze);
 }

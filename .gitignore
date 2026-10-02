@@ -1,3 +1,5 @@
 bin/
 .vscode/
 *.swp
+mms.app
+.DS_Store

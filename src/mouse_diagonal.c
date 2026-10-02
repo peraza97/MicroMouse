@@ -4,13 +4,13 @@
 #include "API.h"
 #include "utils.h"
 
-struct Mouse * CreateMouse(unsigned char mazeDimension) {
-    struct Mouse *mouse = (struct Mouse*)malloc(sizeof(struct Mouse));
+static const int DX[8] = {-1, -1,  0,  1,  1,  1,  0, -1};
+static const int DY[8] = { 0,  1,  1,  1,  0, -1, -1, -1};
+
+struct Mouse * CreateMouse(unsigned char mazeDimension)
+{
+    struct Mouse *mouse = calloc(1, sizeof(struct Mouse));
     mouse->maze = CreateMaze(mazeDimension);
-    mouse->location.x = 15;
-    mouse->location.y = 0;
-    mouse->heading = NORTH;
-    
     mouse->SetUpMouse = &SetUpMouse;
     mouse->GetNextAction = &GetNextAction;
     mouse->TakeAction = &TakeAction;
@@ -29,12 +29,10 @@ struct Mouse * CreateMouse(unsigned char mazeDimension) {
 
 void SetUpMouse(struct Mouse * mouse)
 {
-    // Set location and heading
-    mouse->location.x = 15;
-    mouse->location.y = 0;
+    /* Half-step coordinates: (2 * row + 1, 2 * column + 1). */
+    mouse->location.x = mouse->maze->mazeDimension * 2 - 1;
+    mouse->location.y = 1;
     mouse->heading = NORTH;
-
-    // Set up maze
     mouse->maze->SetUpMaze(mouse->maze);
 }
 
@@ -46,7 +44,8 @@ void FreeMouse(struct Mouse * mouse)
 
 Action GetNextAction(struct Mouse * mouse)
 {
-    return mouse->maze->GetNextMove(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
+    return mouse->maze->GetNextMove(mouse->maze, mouse->location.x,
+                                    mouse->location.y, mouse->heading);
 }
 
 void TakeAction(struct Mouse * mouse, Action action)
@@ -54,142 +53,37 @@ void TakeAction(struct Mouse * mouse, Action action)
     switch (action)
     {
         case FORWARD:
-        {
-            Heading h = mouse->heading;
-            if (h == NORTHEAST || h == SOUTHEAST || h == SOUTHWEST || h == NORTHWEST)
-            {
-                if (CanMoveDiagonally(mouse->maze, mouse->location.x, mouse->location.y, h))
-                {
-                    int oldX = mouse->location.x;
-                    int oldY = mouse->location.y;
-                    mouse->MoveForward(mouse);
-                    if (mouse->location.x == oldX && mouse->location.y == oldY)
-                    {
-                        mouse->TurnRight45(mouse);
-                        if (mouse->CanMoveForward(mouse))
-                        {
-                            mouse->MoveForward(mouse);
-                        }
-                        else
-                        {
-                            mouse->TurnLeft(mouse);
-                            if (mouse->CanMoveForward(mouse))
-                            {
-                                mouse->MoveForward(mouse);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    RefloodMaze(mouse->maze);
-                }
-            }
+            /* One command is one half-step, so a crash never leaves us
+               partway through an untracked movement. */
+            if (mouse->CanMoveForward(mouse))
+                mouse->MoveForward(mouse);
             else
-            {
-                if (mouse->CanMoveForward(mouse) == 0)
-                {
-                    mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, mouse->heading);
-                    RefloodMaze(mouse->maze);
-                }
-                else
-                {
-                    mouse->MoveForward(mouse);
-                }
-            }
+                mouse->maze->UpdateMaze(mouse->maze, mouse->location.x,
+                                        mouse->location.y);
             break;
-        }
-        case LEFT:
-            mouse->TurnLeft(mouse);
-            break;
-        case RIGHT:
-            mouse->TurnRight(mouse);
-            break;
-        case LEFT45:
-            mouse->TurnLeft45(mouse);
-            break;
-        case RIGHT45:
-            mouse->TurnRight45(mouse);
-            break;
-        default:
-            break;
+        case LEFT: mouse->TurnLeft(mouse); break;
+        case RIGHT: mouse->TurnRight(mouse); break;
+        case LEFT45: mouse->TurnLeft45(mouse); break;
+        case RIGHT45: mouse->TurnRight45(mouse); break;
+        default: break;
     }
 }
 
 unsigned char CanMoveForward(struct Mouse * mouse)
 {
-    if (API_wallFront() == 1)
-    {
-        return 0;
-    }
-    return 1;
+    (void)mouse;
+    return API_wallFront() == 0;
 }
 
-void CheckWallLeft(struct Mouse * mouse)
-{
-    if (API_wallLeft())
-    {
-        Heading wallDir = ComputeModulo((int)mouse->heading - 2, NUM_HEADINGS);
-        if (wallDir == NORTH || wallDir == EAST || wallDir == SOUTH || wallDir == WEST)
-        {
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, wallDir);
-        }
-    }
-}
-
-void CheckWallRight(struct Mouse * mouse)
-{
-    if (API_wallRight())
-    {
-        Heading wallDir = ComputeModulo((int)mouse->heading + 2, NUM_HEADINGS);
-        if (wallDir == NORTH || wallDir == EAST || wallDir == SOUTH || wallDir == WEST)
-        {
-            mouse->maze->SetWall(mouse->maze, mouse->location.x, mouse->location.y, wallDir);
-        }
-    }
-}
+void CheckWallLeft(struct Mouse * mouse) { (void)mouse; }
+void CheckWallRight(struct Mouse * mouse) { (void)mouse; }
 
 void MoveForward(struct Mouse * mouse)
 {
-    switch (mouse->heading)
-    {
-        case NORTH:
-            API_moveForward();
-            mouse->location.x += -1;
-            break;
-        case EAST:
-            API_moveForward();
-            mouse->location.y += 1;
-            break;
-        case SOUTH:
-            API_moveForward();
-            mouse->location.x += 1;
-            break;
-        case WEST:
-            API_moveForward();
-            mouse->location.y += -1;
-            break;
-        case NORTHEAST:
-            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
-            mouse->location.x += -1;
-            mouse->location.y += 1;
-            break;
-        case SOUTHEAST:
-            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
-            mouse->location.x += 1;
-            mouse->location.y += 1;
-            break;
-        case SOUTHWEST:
-            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
-            mouse->location.x += 1;
-            mouse->location.y += -1;
-            break;
-        case NORTHWEST:
-            if (!API_moveForwardHalf() || !API_moveForwardHalf()) break;
-            mouse->location.x += -1;
-            mouse->location.y += -1;
-            break;
-    }
+    if (!API_moveForwardHalf())
+        return;
+    mouse->location.x += DX[mouse->heading];
+    mouse->location.y += DY[mouse->heading];
 }
 
 void TurnLeft(struct Mouse * mouse)
@@ -218,51 +112,26 @@ void TurnRight45(struct Mouse * mouse)
 
 void DebugMouseState(struct Mouse * mouse)
 {
-    const char* format = "Mouse State: (%d, %d). %s";
+    const char* format = "Mouse half-step state: (%d, %d). %s";
     char * heading = GetHeadingStr(mouse->heading);
-    int len = snprintf(NULL, 0, format, mouse->location.x, mouse->location.y, heading);
+    int len = snprintf(NULL, 0, format, mouse->location.x, mouse->location.y,
+                       heading);
     char msg[len + 1];
-    snprintf(msg, len + 1, format, mouse->location.x, mouse->location.y, heading);
+    snprintf(msg, len + 1, format, mouse->location.x, mouse->location.y,
+             heading);
     debug_log(msg);
-    debug_log("__________________");
 }
 
 void SenseWalls(struct Mouse * mouse)
 {
-    int x = mouse->location.x;
-    int y = mouse->location.y;
-    unsigned char wallsBefore = mouse->maze->walls[x][y];
-    Heading h = mouse->heading;
+    struct HalfStep step;
+    DescribeHalfStep(mouse->maze, mouse->location.x, mouse->location.y,
+                     mouse->heading, &step);
 
-    if (h == NORTH || h == EAST || h == SOUTH || h == WEST)
+    if (API_wallFront() && step.isValid && step.isOpen)
     {
-        mouse->CheckWallLeft(mouse);
-        mouse->CheckWallRight(mouse);
-        if (API_wallFront())
-        {
-            mouse->maze->SetWall(mouse->maze, x, y, h);
-        }
-    }
-    else
-    {
-        Heading cardinal1 = ComputeModulo((int)h - 1, NUM_HEADINGS);
-        Heading cardinal2 = ComputeModulo((int)h + 1, NUM_HEADINGS);
-
-        API_turnLeft45();
-        if (API_wallFront())
-        {
-            mouse->maze->SetWall(mouse->maze, x, y, cardinal1);
-        }
-        API_turnRight();
-        if (API_wallFront())
-        {
-            mouse->maze->SetWall(mouse->maze, x, y, cardinal2);
-        }
-        API_turnLeft45();
-    }
-
-    if (mouse->maze->walls[x][y] != wallsBefore)
-    {
+        mouse->maze->SetWall(mouse->maze, step.wallX, step.wallY,
+                             step.wallHeading);
         RefloodMaze(mouse->maze);
     }
 }
@@ -274,8 +143,8 @@ int ComputeModulo(int a, int b)
 
 void SolveMaze(struct Mouse * mouse)
 {
-    debug_log("Running diagonal solver...");
-    Action nextMove = IDLE;
+    debug_log("Running half-step diagonal solver...");
+    Action nextMove;
     do
     {
         mouse->DebugMouseState(mouse);
